@@ -19,10 +19,6 @@ document.getElementById('search').addEventListener('input', function () {
 function mostrarResultados(lista) {
   const contenedor = document.getElementById('product-list');
   contenedor.innerHTML = '';
-  if (lista.length === 0) {
-    contenedor.innerHTML = '<p>No se encontraron coincidencias. Intenta con otro término.</p>';
-    return;
-  }
   lista.forEach(p => {
     const div = document.createElement('div');
     div.innerHTML = `<strong>${p.Concepto}</strong> (${p.Código}) - ${p.Empresa}
