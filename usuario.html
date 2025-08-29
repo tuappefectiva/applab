@@ -20,6 +20,14 @@
       padding: 10px;
       width: 300px;
       margin-bottom: 20px;
+      border: 2px solid #004832;
+      border-radius: 5px;
+    }
+    #suggestions {
+      width: 100%;
+      max-width: 400px;
+      max-height: 300px;
+      overflow-y: auto;
     }
     #suggestions div {
       border: 1px solid #ccc;
@@ -27,19 +35,42 @@
       margin-bottom: 5px;
       cursor: pointer;
       background-color: #fff;
+      border-radius: 3px;
+      transition: background-color 0.2s;
+    }
+    #suggestions div:hover {
+      background-color: #f0f0f0;
     }
     #cart {
       margin-top: 20px;
       list-style: none;
       padding: 0;
+      width: 100%;
+      max-width: 400px;
     }
     #cart li {
       margin-bottom: 5px;
+      padding: 8px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 3px;
     }
     button {
       padding: 10px 20px;
       margin-top: 20px;
       cursor: pointer;
+      background-color: #004832;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #006644;
+    }
+    .no-results {
+      color: #666;
+      font-style: italic;
+      padding: 10px;
     }
   </style>
 </head>
@@ -56,51 +87,120 @@
     let productos = [];
     let carrito = [];
 
-    fetch('productos_usuario.json')
-      .then(res => res.json())
-      .then(data => {
-        productos = data;
-      });
+    // Cargar productos al inicio
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('productos_usuario.json')
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('Error al cargar productos');
+          }
+          return res.json();
+        })
+        .then(data => {
+          productos = data;
+          console.log('Productos cargados:', productos.length);
+        })
+        .catch(error => {
+          console.error('Error cargando productos:', error);
+          alert('Error al cargar la base de datos de productos');
+        });
+    });
 
+    // Evento de búsqueda
     document.getElementById('search').addEventListener('input', function () {
       const query = this.value.toLowerCase().trim();
-      const resultados = productos.filter(p =>
-        p.Código.toLowerCase().includes(query) ||
-        p.Concepto.toLowerCase().includes(query)
-      );
+      
+      // Limpiar sugerencias si no hay búsqueda
+      if (query.length === 0) {
+        document.getElementById('suggestions').innerHTML = '';
+        return;
+      }
+
+      // Filtrar productos - CORREGIDO
+      const resultados = productos.filter(p => {
+        // Convertir a string y luego a lowercase para evitar errores
+        const codigo = String(p.Código || '').toLowerCase();
+        const concepto = String(p.Concepto || '').toLowerCase();
+        
+        return codigo.includes(query) || concepto.includes(query);
+      });
+
+      console.log('Búsqueda:', query, 'Resultados:', resultados.length);
       mostrarSugerencias(resultados);
     });
 
     function mostrarSugerencias(lista) {
       const contenedor = document.getElementById('suggestions');
       contenedor.innerHTML = '';
+      
       if (lista.length === 0) {
-        contenedor.innerHTML = '<p>No se encontraron coincidencias.</p>';
+        contenedor.innerHTML = '<p class="no-results">No se encontraron coincidencias.</p>';
         return;
       }
-      lista.forEach(p => {
+
+      // Limitar resultados para mejor rendimiento
+      const maxResultados = Math.min(lista.length, 10);
+      
+      for (let i = 0; i < maxResultados; i++) {
+        const p = lista[i];
         const div = document.createElement('div');
-        div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
+        div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa} - €${p.Precio}`;
         div.onclick = () => agregarAlPedido(p.Código, p.Concepto);
         contenedor.appendChild(div);
-      });
+      }
+
+      if (lista.length > 10) {
+        const div = document.createElement('div');
+        div.textContent = `... y ${lista.length - 10} resultados más. Refina tu búsqueda.`;
+        div.style.color = '#666';
+        div.style.fontStyle = 'italic';
+        div.style.cursor = 'default';
+        contenedor.appendChild(div);
+      }
     }
 
     function agregarAlPedido(codigo, concepto) {
+      // Verificar si el producto ya está en el carrito
+      const yaExiste = carrito.some(item => item.codigo === codigo);
+      
+      if (yaExiste) {
+        alert('Este producto ya está en el pedido.');
+        return;
+      }
+
       carrito.push({ codigo, concepto });
       actualizarPedido();
+      
+      // Limpiar búsqueda
       document.getElementById('search').value = '';
       document.getElementById('suggestions').innerHTML = '';
+      
+      // Feedback visual
+      alert(`Producto agregado: ${concepto}`);
     }
 
     function actualizarPedido() {
       const ul = document.getElementById('cart');
       ul.innerHTML = '';
-      carrito.forEach(item => {
+      
+      if (carrito.length === 0) {
+        ul.innerHTML = '<li style="color: #666; font-style: italic;">No hay productos en el pedido</li>';
+        return;
+      }
+
+      carrito.forEach((item, index) => {
         const li = document.createElement('li');
-        li.textContent = `${item.concepto} (${item.codigo})`;
+        li.innerHTML = `
+          ${item.concepto} (${item.codigo})
+          <button onclick="eliminarDelPedido(${index})" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer;">✕</button>
+        `;
         ul.appendChild(li);
       });
+    }
+
+    function eliminarDelPedido(index) {
+      carrito.splice(index, 1);
+      actualizarPedido();
     }
 
     function hacerPedido() {
@@ -108,13 +208,29 @@
         alert('No hay productos en el pedido.');
         return;
       }
-      localStorage.setItem('pedido', JSON.stringify(carrito));
-      alert('Pedido enviado correctamente.');
-      carrito = [];
-      actualizarPedido();
-      document.getElementById('search').value = '';
-      document.getElementById('suggestions').innerHTML = '';
+      
+      try {
+        localStorage.setItem('pedido', JSON.stringify(carrito));
+        alert(`Pedido enviado correctamente. Total de productos: ${carrito.length}`);
+        carrito = [];
+        actualizarPedido();
+        document.getElementById('search').value = '';
+        document.getElementById('suggestions').innerHTML = '';
+      } catch (error) {
+        console.error('Error al enviar pedido:', error);
+        alert('Error al enviar el pedido. Inténtalo de nuevo.');
+      }
     }
+
+    // Función para limpiar búsqueda cuando se hace clic fuera
+    document.addEventListener('click', function(event) {
+      const searchContainer = document.getElementById('suggestions');
+      const searchInput = document.getElementById('search');
+      
+      if (!searchContainer.contains(event.target) && event.target !== searchInput) {
+        searchContainer.innerHTML = '';
+      }
+    });
   </script>
 </body>
 </html>
