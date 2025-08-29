@@ -15,11 +15,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Buscar coincidencias al escribir
   searchInput.addEventListener('input', () => {
-    const query = searchInput.value.toLowerCase();
-    const resultados = productos.filter(p =>
-      p.Código.toLowerCase().includes(query) ||
-      p.Concepto.toLowerCase().includes(query)
-    );
+    const query = searchInput.value.toLowerCase().trim();
+    if (query.length === 0) {
+      suggestions.innerHTML = '';
+      return;
+    }
+
+    const resultados = productos.filter(p => {
+      const codigo = p.Código?.toLowerCase() || '';
+      const nombre = p.Productos?.toLowerCase() || p.Concepto?.toLowerCase() || '';
+      return codigo.includes(query) || nombre.includes(query);
+    });
+
     mostrarSugerencias(resultados);
   });
 
@@ -30,11 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
       suggestions.innerHTML = '<p>No se encontraron coincidencias.</p>';
       return;
     }
+
     lista.forEach(p => {
       const div = document.createElement('div');
-      div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
-      div.classList.add('suggestion-item');
-      div.onclick = () => agregarAlCarrito(p.Código, p.Concepto);
+      const nombre = p.Productos || p.Concepto;
+      div.textContent = `${nombre} (${p.Código}) - ${p.Empresa}`;
+      div.style.border = '1px solid #ccc';
+      div.style.padding = '10px';
+      div.style.marginBottom = '5px';
+      div.style.cursor = 'pointer';
+      div.onclick = () => agregarAlCarrito(p.Código, nombre);
       suggestions.appendChild(div);
     });
   }
