@@ -6,7 +6,7 @@ body.centered {
   place-items: center;
   color: #fff;
   background:
-    linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.45)),
+    linear-gradient(0deg, rgba(0,0,0,.20), rgba(0,0,0,.20)),
     url("C:\Users\rome005\OneDrive - Koppert\Escritorio\applab-main\applab-main") center / cover no-repeat fixed;
 }
 
