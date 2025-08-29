@@ -1,3 +1,4 @@
+
 body.centered {
   min-height: 100vh;
   margin: 0;
@@ -5,10 +6,10 @@ body.centered {
   place-items: center;
   color: #fff;
   background:
-      url("C:\Users\rome005\OneDrive - Koppert\Escritorio\applab-main\applab-main") center / cover no-repeat fixed; /* tu imagen */
+    linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.45)),
+    url("img/fondo.jpg") center / cover no-repeat fixed;
 }
 
-/* Tarjeta para legibilidad */
 .card {
   background: rgba(0, 0, 0, 0.5);
   padding: 30px;
