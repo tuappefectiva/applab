@@ -5,9 +5,20 @@
   <title>Inicio - Laboratorio</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h1>Bienvenido</h1>
+<body class="centered">
+  <h1>BIENVENIDO/A</h1>
   <button onclick="location.href='usuario.html'">Entrar como Usuario</button>
-  <button onclick="location.href='admin.html'">Entrar como Administrador</button>
+  <button onclick="verificarAdmin()">Entrar como Administrador</button>
+
+  <script>
+    function verificarAdmin() {
+      const clave = prompt("Introduce la contraseña de administrador:");
+      if (clave === "jonroma") {
+        location.href = 'admin.html';
+      } else {
+        alert("Acceso denegado.");
+      }
+    }
+  </script>
 </body>
 </html>
