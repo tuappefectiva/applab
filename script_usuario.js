@@ -13,16 +13,20 @@ document.getElementById('search').addEventListener('input', function () {
     p.Código.toLowerCase().includes(query) ||
     p.Concepto.toLowerCase().includes(query)
   );
-  mostrarResultados(resultados);
+  mostrarSugerencias(resultados);
 });
 
-function mostrarResultados(lista) {
-  const contenedor = document.getElementById('product-list');
+function mostrarSugerencias(lista) {
+  const contenedor = document.getElementById('suggestions');
   contenedor.innerHTML = '';
+  if (lista.length === 0) {
+    contenedor.innerHTML = '<p>No se encontraron coincidencias.</p>';
+    return;
+  }
   lista.forEach(p => {
     const div = document.createElement('div');
-    div.innerHTML = `<strong>${p.Concepto}</strong> (${p.Código}) - ${p.Empresa}
-      <button onclick='agregarAlCarrito("${p.Código}", "${p.Concepto}")'>Agregar</button>`;
+    div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
+    div.onclick = () => agregarAlCarrito(p.Código, p.Concepto);
     contenedor.appendChild(div);
   });
 }
@@ -43,5 +47,6 @@ function actualizarCarrito() {
 }
 
 function submitOrder() {
+  localStorage.setItem('pedido', JSON.stringify(carrito));
   alert('Pedido enviado.');
 }
