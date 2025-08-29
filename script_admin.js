@@ -1,0 +1,1 @@
+document.getElementById('pedidos').innerHTML = '<p>No hay pedidos registrados aún.</p>';
