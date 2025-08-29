@@ -1,3 +1,117 @@
-<input type="text" id="search" placeholder="Buscar por nombre o código...">
-<div id="suggestions"></div>
-<ul id="cart"></ul>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Usuario - Laboratorio</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #search {
+      padding: 10px;
+      width: 300px;
+      margin-bottom: 20px;
+    }
+    #suggestions div {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    #cart {
+      margin-top: 20px;
+      list-style: none;
+      padding: 0;
+    }
+    #cart li {
+      margin-bottom: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Buscar producto o código</h1>
+  <input type="text" id="search" placeholder="Escribe el nombre o código...">
+  <div id="suggestions"></div>
+
+  <h2>Pedido</h2>
+  <ul id="cart"></ul>
+  <button onclick="hacerPedido()">Hacer pedido</button>
+
+  <script>
+    let productos = [];
+    let carrito = [];
+
+    fetch('productos_usuario.json')
+      .then(res => res.json())
+      .then(data => {
+        productos = data;
+      });
+
+    document.getElementById('search').addEventListener('input', function () {
+      const query = this.value.toLowerCase().trim();
+      const resultados = productos.filter(p =>
+        p.Código.toLowerCase().includes(query) ||
+        p.Productos?.toLowerCase().includes(query) ||
+        p.Concepto?.toLowerCase().includes(query)
+      );
+      mostrarSugerencias(resultados);
+    });
+
+    function mostrarSugerencias(lista) {
+      const contenedor = document.getElementById('suggestions');
+      contenedor.innerHTML = '';
+      if (lista.length === 0) {
+        contenedor.innerHTML = '<p>No se encontraron coincidencias.</p>';
+        return;
+      }
+      lista.forEach(p => {
+        const nombre = p.Productos || p.Concepto;
+        const div = document.createElement('div');
+        div.textContent = `${nombre} (${p.Código}) - ${p.Empresa}`;
+        div.onclick = () => agregarAlPedido(p.Código, nombre);
+        contenedor.appendChild(div);
+      });
+    }
+
+    function agregarAlPedido(codigo, concepto) {
+      carrito.push({ codigo, concepto });
+      actualizarPedido();
+      document.getElementById('search').value = '';
+      document.getElementById('suggestions').innerHTML = '';
+    }
+
+    function actualizarPedido() {
+      const ul = document.getElementById('cart');
+      ul.innerHTML = '';
+      carrito.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.concepto} (${item.codigo})`;
+        ul.appendChild(li);
+      });
+    }
+
+    function hacerPedido() {
+      if (carrito.length === 0) {
+        alert('No hay productos en el pedido.');
+        return;
+      }
+      localStorage.setItem('pedido', JSON.stringify(carrito));
+      alert('Pedido enviado correctamente.');
+      carrito = [];
+      actualizarPedido();
+      document.getElementById('search').value = '';
+      document.getElementById('suggestions').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
