@@ -6,9 +6,13 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="centered">
-  <h1>BIENVENIDO/A</h1>
-  <button onclick="location.href='usuario.html'">Entrar como Usuario</button>
-  <button onclick="verificarAdmin()">Entrar como Administrador</button>
+  <main class="card">
+    <h1>BIENVENIDO/A</h1>
+    <div class="actions">
+      <button onclick="location.href='usuario.html'">Entrar como Usuario</button>
+      <button onclick="verificarAdmin()">Entrar como Administrador</button>
+    </div>
+  </main>
 
   <script>
     function verificarAdmin() {
