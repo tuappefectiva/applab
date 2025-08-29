@@ -6,7 +6,7 @@ body.centered {
   place-items: center;
   color: #fff;
   background:
-    linear-gradient(0deg, rgba(0,0,0,.20), rgba(0,0,0,.20)),
+    linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.45)),
     url("https://github.com/tuappefectiva/applab/blob/9f27c90817e8bfb3bb6d4b5c36d65e2cad014eb7/fondo.jpg") center / cover no-repeat fixed;
 }
 
