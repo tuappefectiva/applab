@@ -7,20 +7,20 @@
 </head>
 <body class="centered">
   <main class="card">
-    <h1>BIENVENIDO/A</h1>
+    <h1>WELCOME</h1>
     <div class="actions">
-      <button onclick="location.href='usuario.html'">Entrar como Usuario</button>
-      <button onclick="verificarAdmin()">Entrar como Administrador</button>
+      <button onclick="location.href='usuario.html'">User</button>
+      <button onclick="verificarAdmin()">Admin</button>
     </div>
   </main>
 
   <script>
     function verificarAdmin() {
-      const clave = prompt("Introduce la contraseña de administrador:");
+      const clave = prompt("Introduce your password:");
       if (clave === "jonroma") {
         location.href = 'admin.html';
       } else {
-        alert("Acceso denegado.");
+        alert("Authentication failed: Please verify your credentials and try again.");
       }
     }
   </script>
