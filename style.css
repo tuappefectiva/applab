@@ -7,8 +7,8 @@ body.centered {
   color: #fff;
   background:
     linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.45)),
-    url("https://github.com/tuappefectiva/applab/blob/9ce4f6064bb4b16d32b613b02b8a35005e62c8ea/fondo.jpg") center / cover no-repeat;
-}
+    url("https://raw.githubusercontent.com/tuappefectiva/applab/9ce4f6064bb4b16d32b613b02b8a35005e62c8ea/fondo.jpg")
+    }
 
 .card {
   background: rgba(0, 0, 0, 0.5);
