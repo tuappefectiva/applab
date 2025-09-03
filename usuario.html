@@ -89,7 +89,7 @@
 
     // Cargar productos al inicio
     document.addEventListener('DOMContentLoaded', function() {
-      fetch('productos_usuario.json')
+      fetch('productos_limpios.json')
         .then(res => {
           if (!res.ok) {
             throw new Error('Error al cargar productos');
