@@ -232,5 +232,24 @@
       }
     });
   </script>
+
+<div style='margin-top:20px;'>
+    <h2>Agregar producto personalizado</h2>
+    <input type='text' id='productoPersonalizado' placeholder='Nombre del producto personalizado' style='width:300px; padding:8px;'>
+    <button onclick='agregarProductoPersonalizado()'>Añadir al pedido</button>
+</div>
+
+<script>
+function agregarProductoPersonalizado() {
+    const nombre = document.getElementById("productoPersonalizado").value.trim();
+    if (nombre === "") {
+        alert("Por favor, escribe el nombre del producto personalizado.");
+        return;
+    }
+    alert("Producto personalizado añadido: " + nombre);
+    // Aquí puedes añadir lógica para enviar al administrador o guardar en localStorage
+}
+</script>
+
 </body>
 </html>
