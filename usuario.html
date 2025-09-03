@@ -144,7 +144,7 @@
       for (let i = 0; i < maxResultados; i++) {
         const p = lista[i];
         const div = document.createElement('div');
-        div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa} - €${p.Precio}`;
+        div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
         div.onclick = () => agregarAlPedido(p.Código, p.Concepto);
         contenedor.appendChild(div);
       }
