@@ -1,247 +1,198 @@
 [
   {
-    "Concepto": "C.100 Guantes Nitrilo Pequeños Sensitive",
-    "Código": "GNPSENS",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.100 Guantes Nitrilo Pequeños Sensitive",
+    "codigo": "GNPSENS"
   },
   {
-    "Concepto": "C.100 Guantes Nitrilo Medianos Sensitive",
-    "Código": "GNMSENS",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.100 Guantes Nitrilo Medianos Sensitive",
+    "codigo": "GNMSENS"
   },
   {
-    "Concepto": "C.100 Guantes Nitrilo Grandes Sensitive",
-    "Código": "GNGSENS",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.100 Guantes Nitrilo Grandes Sensitive",
+    "codigo": "GNGSENS"
   },
   {
-    "Concepto": "C.500 Placas Petri PS 90mm DTB",
-    "Código": "200200",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.500 Placas Petri PS 90mm DTB",
+    "codigo": "200200"
   },
   {
-    "Concepto": "Reloj Bolsillo 24 H, 1 Memoria Auxilab",
-    "Código": "KKF002",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Reloj Bolsillo 24 H, 1 Memoria Auxilab",
+    "codigo": "KKF002"
   },
   {
-    "Concepto": "Nutrient Agar 500g Oxoid",
-    "Código": "CM0003B",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Nutrient Agar 500g Oxoid",
+    "codigo": "CM0003B"
   },
   {
-    "Concepto": "Resmas de Papel Filtro 1305 (73gr/m2) 420x520mm",
-    "Código": "RM1305/420-520",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Resmas de Papel Filtro 1305 (73gr/m2) 420x520mm",
+    "codigo": "RM1305/420-520"
   },
   {
-    "Concepto": "Tryptone Soya Agar 500g Oxoid",
-    "Código": "CM0131B",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Tryptone Soya Agar 500g Oxoid",
+    "codigo": "CM0131B"
   },
   {
-    "Concepto": "Etanol 96º Cosmético 5 Lit.",
-    "Código": "91674-5L",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Etanol 96º Cosmético 5 Lit.",
+    "codigo": "91674-5L"
   },
   {
-    "Concepto": "C.6x1000 ML Etanol 96º Cosmético Guinama",
-    "Código": "82074-6X1L",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.6x1000 ML Etanol 96º Cosmético Guinama",
+    "codigo": "82074-6X1L"
   },
   {
-    "Concepto": "C.500 Tubos 50ml C/Faldilla JLC",
-    "Código": "3452035C",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.500 Tubos 50ml C/Faldilla JLC",
+    "codigo": "3452035C"
   },
   {
-    "Concepto": "Potato Dextrose Agar 500g",
-    "Código": "84651.0500",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Potato Dextrose Agar 500g",
+    "codigo": "84651.0500"
   },
   {
-    "Concepto": "C.1000 Bolsas Zip-Lock 30x40cm",
-    "Código": "M300400",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.1000 Bolsas Zip-Lock 30x40cm",
+    "codigo": "M300400"
   },
   {
-    "Concepto": "Placa Petri 90x14 mm, 24 x 20uds. Aseptica",
-    "Código": "391-0565",
-    "Empresa": "Horizonte Bio S.L."
+    "nombre": "Placa Petri 90x14 mm, 24 x 20uds. Aseptica",
+    "codigo": "391-0565"
   },
   {
-    "Concepto": "Asa Digralsky B/5 - 1000u",
-    "Código": "SPRP-L05-1K0",
-    "Empresa": "Horizonte Bio S.L."
+    "nombre": "Asa Digralsky B/5 - 1000u",
+    "codigo": "SPRP-L05-1K0"
   },
   {
-    "Concepto": "Erlenmeyer con Deflectores con Tapón Rosca 500ml",
-    "Código": "8023050G",
-    "Empresa": "Horizonte Bio S.L."
+    "nombre": "Erlenmeyer con Deflectores con Tapón Rosca 500ml",
+    "codigo": "8023050G"
   },
   {
-    "Concepto": "Cuerpo con Placa Porosa de Vidrio para Equipo de Filtración de Membranas de 47mm",
-    "Código": "FU23-1K0-001",
-    "Empresa": "Horizonte Bio S.L."
+    "nombre": "Cuerpo con Placa Porosa de Vidrio para Equipo de Filtración de Membranas de 47mm",
+    "codigo": "FU23-1K0-001"
   },
   {
-    "Concepto": "Mascarilla FFP2 Blanca",
-    "Código": "CTPL0020",
-    "Empresa": "Horizonte Bio S.L."
+    "nombre": "Mascarilla FFP2 Blanca",
+    "codigo": "CTPL0020"
   },
   {
-    "Concepto": "Cicloheximida Biochimica 5gr.",
-    "Código": "A0879.0005",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Cicloheximida Biochimica 5gr.",
+    "codigo": "A0879.0005"
   },
   {
-    "Concepto": "Pipeta Serología 25ml B/U",
-    "Código": "900041.C",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Pipeta Serología 25ml B/U",
+    "codigo": "900041.C"
   },
   {
-    "Concepto": "Agar Bacteriológico Tipo Europeo 500gr.",
-    "Código": "1800.0500",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Agar Bacteriológico Tipo Europeo 500gr.",
+    "codigo": "1800.0500"
   },
   {
-    "Concepto": "Vitrina Extracción Sobremesa Flowlan",
-    "Código": "509400",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Vitrina Extracción Sobremesa Flowlan",
+    "codigo": "509400"
   },
   {
-    "Concepto": "Mesa Soporte para Air.SVEP",
-    "Código": "508410",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Mesa Soporte para Air.SVEP",
+    "codigo": "508410"
   },
   {
-    "Concepto": "Transporte, Instalación y Puesta en Marcha por Parte de Nuestro Servicio Técnico",
-    "Código": "49",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Transporte, Instalación y Puesta en Marcha por Parte de Nuestro Servicio Técnico",
+    "codigo": "49"
   },
   {
-    "Concepto": "Resma de Papel de Filtro 73g/m2, 42x52cm",
-    "Código": "R-75",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Resma de Papel de Filtro 73g/m2, 42x52cm",
+    "codigo": "R-75"
   },
   {
-    "Concepto": "Caja 10 Mascarillas FFP2-EN149",
-    "Código": "FFP2CEV2",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Caja 10 Mascarillas FFP2-EN149",
+    "codigo": "FFP2CEV2"
   },
   {
-    "Concepto": ".45U Sterile S-Pak 47mm 150pk Millipore",
-    "Código": "HAWG047S66",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": ".45U Sterile S-Pak 47mm 150pk Millipore",
+    "codigo": "HAWG047S66"
   },
   {
-    "Concepto": "PK.12 Unidades de Filtración Analítica Estéril Nal",
-    "Código": "130-4020",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "PK.12 Unidades de Filtración Analítica Estéril Nal",
+    "codigo": "130-4020"
   },
   {
-    "Concepto": "Caja 100 Portaobjetos Beige",
-    "Código": "19278.B",
-    "Empresa": "Equilabo Scientific S.L.U."
+    "nombre": "Caja 100 Portaobjetos Beige",
+    "codigo": "19278.B"
   },
   {
-    "Concepto": "Bomba Vacío Rocker-300 Labolan",
-    "Código": "885010",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Bomba Vacío Rocker-300 Labolan",
+    "codigo": "885010"
   },
   {
-    "Concepto": "Equipo de Filtración para Membranas de 47 mm",
-    "Código": "PJB001",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Equipo de Filtración para Membranas de 47 mm",
+    "codigo": "PJB001"
   },
   {
-    "Concepto": "Anillo de Vertido Azul P/Frasco ISO GL45, Simax AL",
-    "Código": "CFG043",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Anillo de Vertido Azul P/Frasco ISO GL45, Simax AL",
+    "codigo": "CFG043"
   },
   {
-    "Concepto": "PK.500 Papel de Pesada Kjeldahl Grado 2122, Papel",
-    "Código": "10347893",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "PK.500 Papel de Pesada Kjeldahl Grado 2122, Papel",
+    "codigo": "10347893"
   },
   {
-    "Concepto": "Matraz Erlenmeyer Simax C/Estrecho 250 ml Auxil",
-    "Código": "CDB005",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Matraz Erlenmeyer Simax C/Estrecho 250 ml Auxil",
+    "codigo": "CDB005"
   },
   {
-    "Concepto": "Maximum Recovery Diluent 500g Oxoid",
-    "Código": "CM0733B",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Maximum Recovery Diluent 500g Oxoid",
+    "codigo": "CM0733B"
   },
   {
-    "Concepto": "Igepal CA 630 Supelco",
-    "Código": "56741-250ML-F",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Igepal CA 630 Supelco",
+    "codigo": "56741-250ML-F"
   },
   {
-    "Concepto": "Tapón Esterilización 45 P Selecta",
-    "Código": "1001487",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Tapón Esterilización 45 P Selecta",
+    "codigo": "1001487"
   },
   {
-    "Concepto": "Gradilla 50T.18mm.Alto 60 Selecta",
-    "Código": "1000609",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Gradilla 50T.18mm.Alto 60 Selecta",
+    "codigo": "1000609"
   },
   {
-    "Concepto": "C.350 Frascos PP 57x73/150ml Grad Est",
-    "Código": "409726",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.350 Frascos PP 57x73/150ml Grad Est",
+    "codigo": "409726"
   },
   {
-    "Concepto": "C.2000 Bolsas Zip-Lock 20x30cm",
-    "Código": "M200300",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.2000 Bolsas Zip-Lock 20x30cm",
+    "codigo": "M200300"
   },
   {
-    "Concepto": "Filtro P/Pipeta LM5000-10000 Pobel",
-    "Código": "1519454",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Filtro P/Pipeta LM5000-10000 Pobel",
+    "codigo": "1519454"
   },
   {
-    "Concepto": "C.100 Bolsas Autoclave 50x75cm DTB",
-    "Código": "200100",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "C.100 Bolsas Autoclave 50x75cm DTB",
+    "codigo": "200100"
   },
   {
-    "Concepto": "Portaobjetos RS, Esmerilados, Esquinas 45º, C/50",
-    "Código": "BPB043",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Portaobjetos RS, Esmerilados, Esquinas 45º, C/50",
+    "codigo": "BPB043"
   },
   {
-    "Concepto": "Vaso Forma Baja / Bécher Forme Basse, Simax 600 ml",
-    "Código": "CBC035",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Vaso Forma Baja / Bécher Forme Basse, Simax 600 ml",
+    "codigo": "CBC035"
   },
   {
-    "Concepto": "Tapón 14-16 Azul Selecta",
-    "Código": "1015161",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Tapón 14-16 Azul Selecta",
+    "codigo": "1015161"
   },
   {
-    "Concepto": "Balanza Electrónica de Precisión XY30002C Labol",
-    "Código": "17634",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Balanza Electrónica de Precisión XY30002C Labol",
+    "codigo": "17634"
   },
   {
-    "Concepto": "Probeta Simax A Azul 100 ml Auxilab",
-    "Código": "DBB031",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "Probeta Simax A Azul 100 ml Auxilab",
+    "codigo": "DBB031"
   },
   {
-    "Concepto": "B.1000 Puntas Azules 100-1000ul NRC",
-    "Código": "162222",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "B.1000 Puntas Azules 100-1000ul NRC",
+    "codigo": "162222"
   },
   {
-    "Concepto": "B.1000 Puntas Amarillas 5-200ul NRC",
-    "Código": "162001",
-    "Empresa": "Hermanos Blanco Barrena, S.A."
+    "nombre": "B.1000 Puntas Amarillas 5-200ul NRC",
+    "codigo": "162001"
   }
 ]
