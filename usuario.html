@@ -239,15 +239,49 @@
     <button onclick='agregarProductoPersonalizado()'>Añadir al pedido</button>
 </div>
 
+<h2>Lista de pedido</h2>
+<ul id='listaPedido'></ul>
+
 <script>
+let pedido = [];
+
 function agregarProductoPersonalizado() {
     const nombre = document.getElementById("productoPersonalizado").value.trim();
     if (nombre === "") {
         alert("Por favor, escribe el nombre del producto personalizado.");
         return;
     }
-    alert("Producto personalizado añadido: " + nombre);
-    // Aquí puedes añadir lógica para enviar al administrador o guardar en localStorage
+    pedido.push({ Concepto: nombre, Código: "PERSONALIZADO", Empresa: "Usuario" });
+    actualizarListaPedido();
+    document.getElementById("productoPersonalizado").value = "";
+}
+
+function agregarProducto(producto) {
+    pedido.push(producto);
+    actualizarListaPedido();
+}
+
+function actualizarListaPedido() {
+    const lista = document.getElementById("listaPedido");
+    lista.innerHTML = "";
+    pedido.forEach((p, index) => {
+        const item = document.createElement("li");
+        item.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
+        lista.appendChild(item);
+    });
+}
+
+function hacerPedido() {
+    if (pedido.length === 0) {
+        alert("No hay productos en el pedido.");
+        return;
+    }
+    // Simulación de envío al administrador
+    alert("Pedido enviado al administrador:
+" + pedido.map(p => `${p.Concepto} (${p.Código})`).join("
+"));
+    pedido = [];
+    actualizarListaPedido();
 }
 </script>
 
