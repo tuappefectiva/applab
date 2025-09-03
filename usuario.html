@@ -3,287 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <title>Usuario - Laboratorio</title>
-  <style>
-    body {
-      background-color: #b9e6b9;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    h1 {
-      color: #004832;
-    }
-    #search {
-      padding: 10px;
-      width: 300px;
-      margin-bottom: 20px;
-      border: 2px solid #004832;
-      border-radius: 5px;
-    }
-    #suggestions {
-      width: 100%;
-      max-width: 400px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    #suggestions div {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 5px;
-      cursor: pointer;
-      background-color: #fff;
-      border-radius: 3px;
-      transition: background-color 0.2s;
-    }
-    #suggestions div:hover {
-      background-color: #f0f0f0;
-    }
-    #cart {
-      margin-top: 20px;
-      list-style: none;
-      padding: 0;
-      width: 100%;
-      max-width: 400px;
-    }
-    #cart li {
-      margin-bottom: 5px;
-      padding: 8px;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 20px;
-      cursor: pointer;
-      background-color: #004832;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #006644;
-    }
-    .no-results {
-      color: #666;
-      font-style: italic;
-      padding: 10px;
-    }
-  </style>
 </head>
 <body>
-  <h1>Buscar producto o código</h1>
-  <input type="text" id="search" placeholder="Escribe el nombre o código...">
-  <div id="suggestions"></div>
+  <h1>Usuario - Laboratorio</h1>
 
-  <h2>Pedido</h2>
-  <ul id="cart"></ul>
+  <h2>Buscar producto o código</h2>
+  <!-- Aquí iría tu buscador si lo tienes -->
+
+  <h3>Pedido</h3>
   <button onclick="hacerPedido()">Hacer pedido</button>
 
+  <h3>Agregar producto personalizado</h3>
+  <input type="text" id="productoPersonalizado" placeholder="Nombre del producto">
+  <button onclick="agregarProducto()">Añadir al pedido</button>
+
+  <h3>Lista de pedido</h3>
+  <ul id="listaPedido"></ul>
+
   <script>
-    let productos = [];
-    let carrito = [];
+    let pedido = [];
 
-    // Cargar productos al inicio
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch('productos_usuario.json')
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Error al cargar productos');
-          }
-          return res.json();
-        })
-        .then(data => {
-          productos = data;
-          console.log('Productos cargados:', productos.length);
-        })
-        .catch(error => {
-          console.error('Error cargando productos:', error);
-          alert('Error al cargar la base de datos de productos');
-        });
-    });
-
-    // Evento de búsqueda
-    document.getElementById('search').addEventListener('input', function () {
-      const query = this.value.toLowerCase().trim();
-      
-      // Limpiar sugerencias si no hay búsqueda
-      if (query.length === 0) {
-        document.getElementById('suggestions').innerHTML = '';
-        return;
+    function agregarProducto() {
+      const input = document.getElementById("productoPersonalizado");
+      const producto = input.value.trim();
+      if (producto) {
+        pedido.push(producto);
+        actualizarListaPedido();
+        input.value = "";
       }
+    }
 
-      // Filtrar productos - CORREGIDO
-      const resultados = productos.filter(p => {
-        // Convertir a string y luego a lowercase para evitar errores
-        const codigo = String(p.Código || '').toLowerCase();
-        const concepto = String(p.Concepto || '').toLowerCase();
-        
-        return codigo.includes(query) || concepto.includes(query);
+    function actualizarListaPedido() {
+      const lista = document.getElementById("listaPedido");
+      lista.innerHTML = "";
+      pedido.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        lista.appendChild(li);
       });
-
-      console.log('Búsqueda:', query, 'Resultados:', resultados.length);
-      mostrarSugerencias(resultados);
-    });
-
-    function mostrarSugerencias(lista) {
-      const contenedor = document.getElementById('suggestions');
-      contenedor.innerHTML = '';
-      
-      if (lista.length === 0) {
-        contenedor.innerHTML = '<p class="no-results">No se encontraron coincidencias.</p>';
-        return;
-      }
-
-      // Limitar resultados para mejor rendimiento
-      const maxResultados = Math.min(lista.length, 10);
-      
-      for (let i = 0; i < maxResultados; i++) {
-        const p = lista[i];
-        const div = document.createElement('div');
-        div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa} - €${p.Precio}`;
-        div.onclick = () => agregarAlPedido(p.Código, p.Concepto);
-        contenedor.appendChild(div);
-      }
-
-      if (lista.length > 10) {
-        const div = document.createElement('div');
-        div.textContent = `... y ${lista.length - 10} resultados más. Refina tu búsqueda.`;
-        div.style.color = '#666';
-        div.style.fontStyle = 'italic';
-        div.style.cursor = 'default';
-        contenedor.appendChild(div);
-      }
-    }
-
-    function agregarAlPedido(codigo, concepto) {
-      // Verificar si el producto ya está en el carrito
-      const yaExiste = carrito.some(item => item.codigo === codigo);
-      
-      if (yaExiste) {
-        alert('Este producto ya está en el pedido.');
-        return;
-      }
-
-      carrito.push({ codigo, concepto });
-      actualizarPedido();
-      
-      // Limpiar búsqueda
-      document.getElementById('search').value = '';
-      document.getElementById('suggestions').innerHTML = '';
-      
-      // Feedback visual
-      alert(`Producto agregado: ${concepto}`);
-    }
-
-    function actualizarPedido() {
-      const ul = document.getElementById('cart');
-      ul.innerHTML = '';
-      
-      if (carrito.length === 0) {
-        ul.innerHTML = '<li style="color: #666; font-style: italic;">No hay productos en el pedido</li>';
-        return;
-      }
-
-      carrito.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          ${item.concepto} (${item.codigo})
-          <button onclick="eliminarDelPedido(${index})" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer;">✕</button>
-        `;
-        ul.appendChild(li);
-      });
-    }
-
-    function eliminarDelPedido(index) {
-      carrito.splice(index, 1);
-      actualizarPedido();
     }
 
     function hacerPedido() {
-      if (carrito.length === 0) {
-        alert('No hay productos en el pedido.');
-        return;
-      }
-      
-      try {
-        localStorage.setItem('pedido', JSON.stringify(carrito));
-        alert(`Pedido enviado correctamente. Total de productos: ${carrito.length}`);
-        carrito = [];
-        actualizarPedido();
-        document.getElementById('search').value = '';
-        document.getElementById('suggestions').innerHTML = '';
-      } catch (error) {
-        console.error('Error al enviar pedido:', error);
-        alert('Error al enviar el pedido. Inténtalo de nuevo.');
-      }
-    }
+      const ahora = new Date();
+      const inicioAno = new Date(ahora.getFullYear(), 0, 1);
+      const dias = Math.floor((ahora - inicioAno) / (24 * 60 * 60 * 1000));
+      const semana = Math.ceil((dias + inicioAno.getDay() + 1) / 7);
+      const titulo = `Semana ${semana} - ${ahora.getFullYear()}`;
 
-    // Función para limpiar búsqueda cuando se hace clic fuera
-    document.addEventListener('click', function(event) {
-      const searchContainer = document.getElementById('suggestions');
-      const searchInput = document.getElementById('search');
-      
-      if (!searchContainer.contains(event.target) && event.target !== searchInput) {
-        searchContainer.innerHTML = '';
-      }
-    });
+      alert(`Pedido enviado al administrador.\n${titulo}\nProductos:\n- ${pedido.join("\n- ")}`);
+
+      // Aquí podrías enviar los datos al servidor si lo deseas
+      pedido = [];
+      actualizarListaPedido();
+    }
   </script>
-
-<div style='margin-top:20px;'>
-    <h2>Agregar producto personalizado</h2>
-    <input type='text' id='productoPersonalizado' placeholder='Nombre del producto personalizado' style='width:300px; padding:8px;'>
-    <button onclick='agregarProductoPersonalizado()'>Añadir al pedido</button>
-</div>
-
-<h2>Lista de pedido</h2>
-<ul id='listaPedido'></ul>
-
-<script>
-let pedido = [];
-
-function agregarProductoPersonalizado() {
-    const nombre = document.getElementById("productoPersonalizado").value.trim();
-    if (nombre === "") {
-        alert("Por favor, escribe el nombre del producto personalizado.");
-        return;
-    }
-    pedido.push({ Concepto: nombre, Código: "PERSONALIZADO", Empresa: "Usuario" });
-    actualizarListaPedido();
-    document.getElementById("productoPersonalizado").value = "";
-}
-
-function agregarProducto(producto) {
-    pedido.push(producto);
-    actualizarListaPedido();
-}
-
-function actualizarListaPedido() {
-    const lista = document.getElementById("listaPedido");
-    lista.innerHTML = "";
-    pedido.forEach((p, index) => {
-        const item = document.createElement("li");
-        item.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
-        lista.appendChild(item);
-    });
-}
-
-function hacerPedido() {
-    if (pedido.length === 0) {
-        alert("No hay productos en el pedido.");
-        return;
-    }
-    // Simulación de envío al administrador
-    alert("Pedido enviado al administrador:
-" + pedido.map(p => `${p.Concepto} (${p.Código})`).join("
-"));
-    pedido = [];
-    actualizarListaPedido();
-}
-</script>
-
 </body>
 </html>
