@@ -1,289 +1,300 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Usuario - Laboratorio</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Usuario – Laboratorio</title>
   <style>
-    body {
-      background-color: #b9e6b9;
+    :root{
+      /* Paleta solicitada */
+      --primary: #004832;    /* Botones y enunciados */
+      --btn-text: #f6ffe6;   /* Letras de botones (corrección del valor dado) */
+      --bg: #b9e6b9;         /* Fondo de pantalla */
+      --surface: #ffffff;    /* Superficie (selects y zonas de escritura) */
+      --radius: 12px;
+      --shadow: 0 6px 18px rgba(0,0,0,.08);
+    }
+
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: var(--bg);
+      color: #0f2417;
+      display: grid;
+      place-items: start center;
+      padding: 32px 16px;
+    }
+
+    .container{
+      width: 100%;
+      max-width: 920px;
+      background: transparent;
+    }
+
+    h1, h2, h3{
+      color: var(--primary);
+      margin: 0 0 12px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    h1{ font-size: 1.8rem; margin-bottom: 20px; }
+    h2{ font-size: 1.25rem; }
+
+    .card{
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin: 16px 0;
+    }
+
+    .row{ display: grid; gap: 12px; }
+
+    label{ font-weight: 600; color: var(--primary); }
+
+    select, textarea{
+      width: 100%;
+      background: var(--surface);
+      color: #0b1d15;
+      border: 2px solid #9ed0a4; /* sutil tono verdoso */
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    select:focus, textarea:focus{
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0,72,50,.18);
+    }
+
+    .inline-actions{
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      gap: 12px;
       align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      margin-top: 10px;
     }
-    h1 {
-      color: #004832;
-    }
-    #search {
-      padding: 10px;
-      width: 300px;
-      margin-bottom: 20px;
-      border: 2px solid #004832;
-      border-radius: 5px;
-    }
-    #suggestions {
-      width: 100%;
-      max-width: 400px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    #suggestions div {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 5px;
-      cursor: pointer;
-      background-color: #fff;
-      border-radius: 3px;
-      transition: background-color 0.2s;
-    }
-    #suggestions div:hover {
-      background-color: #f0f0f0;
-    }
-    #cart {
-      margin-top: 20px;
-      list-style: none;
-      padding: 0;
-      width: 100%;
-      max-width: 400px;
-    }
-    #cart li {
-      margin-bottom: 5px;
-      padding: 8px;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 20px;
-      cursor: pointer;
-      background-color: #004832;
-      color: white;
+
+    button{
+      background: var(--primary);
+      color: var(--btn-text);
       border: none;
-      border-radius: 5px;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .2px;
+      box-shadow: 0 4px 10px rgba(0,72,50,.25);
+      transform: translateY(0);
+      transition: transform .15s ease, filter .15s ease, box-shadow .2s ease;
     }
-    button:hover {
-      background-color: #006644;
+    button:hover{ filter: brightness(1.05); }
+    button:active{ transform: translateY(1px); }
+    button:disabled{ opacity: .6; cursor: not-allowed; box-shadow: none; }
+
+    .status{ font-size: .9rem; margin-top: 8px; }
+    .status.ok{ color: #126e4a; }
+    .status.error{ color: #a12828; }
+
+    /* Lista de productos */
+    .lista-card{
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
     }
-    .no-results {
-      color: #666;
-      font-style: italic;
-      padding: 10px;
+
+    #listaProductos{
+      margin: 0;
+      padding: 0 0 0 20px;
+      list-style: disc;
+      display: grid;
+      gap: 6px;
+    }
+    #listaProductos li{ line-height: 1.4; }
+
+    .acciones{
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
     }
   </style>
 </head>
 <body>
-  <h1>Buscar producto o código</h1>
-  <input type="text" id="search" placeholder="Escribe el nombre o código...">
-  <div id="suggestions"></div>
+  <main class="container" role="main">
+    <h1>Usuario – Laboratorio</h1>
 
-  <h2>Pedido</h2>
-  <ul id="cart"></ul>
-  <button onclick="hacerPedido()">Hacer pedido</button>
+    <!-- (1) Buscar producto o código -->
+    <section class="card" aria-labelledby="titulo-buscar">
+      <h2 id="titulo-buscar">Buscar producto o código</h2>
+      <div class="row">
+        <label for="productos">Selecciona un producto para añadirlo a la lista</label>
+        <select id="productos" aria-describedby="estadoCarga">
+          <option value="" selected disabled>Selecciona un producto…</option>
+          <!-- Las opciones se cargan dinámicamente desde productos_usuario.json (sin mostrar precios) -->
+        </select>
+        <div id="estadoCarga" class="status">Cargando productos…</div>
+      </div>
+    </section>
+
+    <!-- (2) Agregar productos manualmente -->
+    <section class="card" aria-labelledby="titulo-manual">
+      <h2 id="titulo-manual">Agregar productos manualmente</h2>
+      <div class="row">
+        <label for="manualInput">Escribe los productos (uno por línea). Esta zona no impone estructura.</label>
+        <textarea id="manualInput" rows="4" placeholder="Ej.:
+Puntas 200 µL estériles
+Guantes nitrilo talla M
+Alcohol isopropílico 1 L"></textarea>
+        <div class="inline-actions">
+          <button id="btnAddManual" type="button" title="Añadir los productos escritos a la lista">Añadir a la lista</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- (3) Lista de productos combinada -->
+    <section class="lista-card" aria-labelledby="titulo-lista">
+      <h2 id="titulo-lista">Productos seleccionados</h2>
+      <ul id="listaProductos" aria-live="polite"></ul>
+
+      <!-- (4) Hacer pedido -->
+      <div class="acciones">
+        <button id="btnHacerPedido" type="button">Hacer pedido</button>
+      </div>
+    </section>
+  </main>
 
   <script>
-    let productos = [];
-    let carrito = [];
+    // --- Config opcional (usa mailto si defines un correo) ---
+    const ADMIN_EMAIL = ""; // ej.: "admin@tu-lab.es"
 
-    // Cargar productos al inicio
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch('productos_usuario.json')
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Error al cargar productos');
-          }
-          return res.json();
-        })
-        .then(data => {
-          productos = data;
-          console.log('Productos cargados:', productos.length);
-        })
-        .catch(error => {
-          console.error('Error cargando productos:', error);
-          alert('Error al cargar la base de datos de productos');
-        });
+    // --- Carga del desplegable desde productos_usuario.json ---
+    // Formato esperado (array):
+    // [ { "codigo": "ABC123", "nombre": "Tubos Falcon 50 ml", "precio": 4.2 }, ... ]
+    // *Nunca se muestra el precio en el desplegable*
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarProductos();
+      document.getElementById('productos').addEventListener('change', onSeleccionProducto);
+      document.getElementById('btnAddManual').addEventListener('click', agregarDesdeManual);
+      document.getElementById('btnHacerPedido').addEventListener('click', hacerPedido);
     });
 
-    // Evento de búsqueda
-    document.getElementById('search').addEventListener('input', function () {
-      const query = this.value.toLowerCase().trim();
-      
-      // Limpiar sugerencias si no hay búsqueda
-      if (query.length === 0) {
-        document.getElementById('suggestions').innerHTML = '';
-        return;
-      }
-
-      // Filtrar productos - CORREGIDO
-      const resultados = productos.filter(p => {
-        // Convertir a string y luego a lowercase para evitar errores
-        const codigo = String(p.Código || '').toLowerCase();
-        const concepto = String(p.Concepto || '').toLowerCase();
-        
-        return codigo.includes(query) || concepto.includes(query);
-      });
-
-      console.log('Búsqueda:', query, 'Resultados:', resultados.length);
-      mostrarSugerencias(resultados);
-    });
-
-    function mostrarSugerencias(lista) {
-      const contenedor = document.getElementById('suggestions');
-      contenedor.innerHTML = '';
-      
-      if (lista.length === 0) {
-        contenedor.innerHTML = '<p class="no-results">No se encontraron coincidencias.</p>';
-        return;
-      }
-
-      // Limitar resultados para mejor rendimiento
-      const maxResultados = Math.min(lista.length, 10);
-      
-      for (let i = 0; i < maxResultados; i++) {
-        const p = lista[i];
-        const div = document.createElement('div');
-        div.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa} - €${p.Precio}`;
-        div.onclick = () => agregarAlPedido(p.Código, p.Concepto);
-        contenedor.appendChild(div);
-      }
-
-      if (lista.length > 10) {
-        const div = document.createElement('div');
-        div.textContent = `... y ${lista.length - 10} resultados más. Refina tu búsqueda.`;
-        div.style.color = '#666';
-        div.style.fontStyle = 'italic';
-        div.style.cursor = 'default';
-        contenedor.appendChild(div);
-      }
-    }
-
-    function agregarAlPedido(codigo, concepto) {
-      // Verificar si el producto ya está en el carrito
-      const yaExiste = carrito.some(item => item.codigo === codigo);
-      
-      if (yaExiste) {
-        alert('Este producto ya está en el pedido.');
-        return;
-      }
-
-      carrito.push({ codigo, concepto });
-      actualizarPedido();
-      
-      // Limpiar búsqueda
-      document.getElementById('search').value = '';
-      document.getElementById('suggestions').innerHTML = '';
-      
-      // Feedback visual
-      alert(`Producto agregado: ${concepto}`);
-    }
-
-    function actualizarPedido() {
-      const ul = document.getElementById('cart');
-      ul.innerHTML = '';
-      
-      if (carrito.length === 0) {
-        ul.innerHTML = '<li style="color: #666; font-style: italic;">No hay productos en el pedido</li>';
-        return;
-      }
-
-      carrito.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          ${item.concepto} (${item.codigo})
-          <button onclick="eliminarDelPedido(${index})" style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer;">✕</button>
-        `;
-        ul.appendChild(li);
-      });
-    }
-
-    function eliminarDelPedido(index) {
-      carrito.splice(index, 1);
-      actualizarPedido();
-    }
-
-    function hacerPedido() {
-      if (carrito.length === 0) {
-        alert('No hay productos en el pedido.');
-        return;
-      }
-      
+    async function cargarProductos(){
+      const select = document.getElementById('productos');
+      const estado = document.getElementById('estadoCarga');
       try {
-        localStorage.setItem('pedido', JSON.stringify(carrito));
-        alert(`Pedido enviado correctamente. Total de productos: ${carrito.length}`);
-        carrito = [];
-        actualizarPedido();
-        document.getElementById('search').value = '';
-        document.getElementById('suggestions').innerHTML = '';
-      } catch (error) {
-        console.error('Error al enviar pedido:', error);
-        alert('Error al enviar el pedido. Inténtalo de nuevo.');
+        const res = await fetch('productos_usuario.json', { cache: 'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        if(!Array.isArray(data)) throw new Error('Formato JSON no válido (se esperaba un array)');
+
+        for(const p of data){
+          const nombre = (p?.nombre ?? '').toString().trim();
+          const codigo = (p?.codigo ?? '').toString().trim();
+          // Sin precio: etiqueta solo con nombre y/o código
+          const label = nombre && codigo ? `${nombre} (${codigo})` : (nombre || codigo || 'Producto sin nombre');
+          const opt = document.createElement('option');
+          opt.value = label;       // El propio texto que se añadirá a la lista
+          opt.textContent = label; // Sin precios
+          select.appendChild(opt);
+        }
+        estado.textContent = 'Productos cargados';
+        estado.className = 'status ok';
+      } catch(err){
+        console.error(err);
+        estado.textContent = 'No se pudo cargar productos_usuario.json';
+        estado.className = 'status error';
+        // Se puede seguir usando la app aunque no cargue el archivo
       }
     }
 
-    // Función para limpiar búsqueda cuando se hace clic fuera
-    document.addEventListener('click', function(event) {
-      const searchContainer = document.getElementById('suggestions');
-      const searchInput = document.getElementById('search');
-      
-      if (!searchContainer.contains(event.target) && event.target !== searchInput) {
-        searchContainer.innerHTML = '';
+    function onSeleccionProducto(e){
+      const value = e.target.value;
+      if(!value) return;
+      agregarALista(value);
+      // Volver al placeholder para poder seleccionar el mismo u otro de nuevo
+      e.target.selectedIndex = 0;
+    }
+
+    function agregarDesdeManual(){
+      const textarea = document.getElementById('manualInput');
+      const lineas = textarea.value.split(/\n/).map(s => s.trim()).filter(Boolean);
+      if(lineas.length === 0) return;
+      for(const linea of lineas){ agregarALista(linea); }
+      textarea.value = '';
+      textarea.focus();
+    }
+
+    function agregarALista(texto){
+      const ul = document.getElementById('listaProductos');
+      const li = document.createElement('li');
+      li.textContent = texto;
+      ul.appendChild(li);
+    }
+
+    // Cálculo ISO week-number & year (lunes como primer día)
+    function isoWeekYear(date = new Date()){
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7; // 1..7
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      const year = d.getUTCFullYear();
+      return { week, year };
+    }
+
+    async function hacerPedido(){
+      const items = Array.from(document.querySelectorAll('#listaProductos li'))
+        .map(li => li.textContent.trim()).filter(Boolean);
+      if(items.length === 0){
+        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
+        return;
       }
-    });
+
+      const { week, year } = isoWeekYear(new Date());
+      const payload = {
+        productos: items,
+        semana: week,
+        anio: year,
+        timestamp: new Date().toISOString()
+      };
+
+      // 1) Intento de envío a backend
+      try{
+        const res = await fetch('/api/pedidos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if(!res.ok) throw new Error('Respuesta no OK');
+        alert(`Pedido enviado al administrador. Semana ${week}, ${year}.`);
+        document.getElementById('listaProductos').innerHTML = '';
+        return;
+      }catch(err){
+        console.warn('No se pudo enviar al servidor.', err);
+      }
+
+      // 2) Fallback: mailto si hay correo definido
+      const textoPlano = `Pedido (Semana ${week}, ${year})
+` + items.map((t,i)=>`${i+1}. ${t}`).join('\n');
+
+      if(ADMIN_EMAIL){
+        const subject = encodeURIComponent(`Pedido laboratorio - Semana ${week}, ${year}`);
+        const body = encodeURIComponent(textoPlano);
+        window.location.href = `mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`;
+        // No vaciamos lista por si el usuario cancela el email
+        return;
+      }
+
+      // 3) Fallback: copiar al portapapeles / mostrar
+      try{
+        await navigator.clipboard.writeText(textoPlano);
+        alert('No se pudo contactar con el servidor. He copiado el pedido al portapapeles para que puedas pegarlo en un email o Teams.\n\n' + textoPlano);
+      }catch(_){
+        alert('No se pudo contactar con el servidor. Copia manualmente este pedido:\n\n' + textoPlano);
+      }
+    }
   </script>
-
-<div style='margin-top:20px;'>
-    <h2>Agregar producto personalizado</h2>
-    <input type='text' id='productoPersonalizado' placeholder='Nombre del producto personalizado' style='width:300px; padding:8px;'>
-    <button onclick='agregarProductoPersonalizado()'>Añadir al pedido</button>
-</div>
-
-<h2>Lista de pedido</h2>
-<ul id='listaPedido'></ul>
-
-<script>
-let pedido = [];
-
-function agregarProductoPersonalizado() {
-    const nombre = document.getElementById("productoPersonalizado").value.trim();
-    if (nombre === "") {
-        alert("Por favor, escribe el nombre del producto personalizado.");
-        return;
-    }
-    pedido.push({ Concepto: nombre, Código: "PERSONALIZADO", Empresa: "Usuario" });
-    actualizarListaPedido();
-    document.getElementById("productoPersonalizado").value = "";
-}
-
-function agregarProducto(producto) {
-    pedido.push(producto);
-    actualizarListaPedido();
-}
-
-function actualizarListaPedido() {
-    const lista = document.getElementById("listaPedido");
-    lista.innerHTML = "";
-    pedido.forEach((p, index) => {
-        const item = document.createElement("li");
-        item.textContent = `${p.Concepto} (${p.Código}) - ${p.Empresa}`;
-        lista.appendChild(item);
-    });
-}
-
-function hacerPedido() {
-    if (pedido.length === 0) {
-        alert("No hay productos en el pedido.");
-        return;
-    }
-    // Simulación de envío al administrador
-    alert("Pedido enviado al administrador:
-" + pedido.map(p => `${p.Concepto} (${p.Código})`).join("
-"));
-    pedido = [];
-    actualizarListaPedido();
-}
-</script>
-
 </body>
 </html>
