@@ -31,7 +31,7 @@
     }
     button {
       background-color: #004832;
-      color: #f6ff2e6;
+      color: #ffffff;
       border: none;
       border-radius: 999px;
       padding: 10px 20px;
@@ -70,7 +70,7 @@
   <script>
     async function cargarProductos() {
       try {
-        const res = await fetch('productos_usuario_limpio.json');
+        const res = await fetch('https://raw.githubusercontent.com/tu-usuario/tu-repo/main/productos_usuario_limpio.json');
         const data = await res.json();
         const select = document.getElementById('productos');
         data.forEach(p => {
