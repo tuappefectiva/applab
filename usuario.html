@@ -47,26 +47,6 @@
 </head>
 <body>
   <h1>Usuario – Laboratorio</h1>
-
-  <div class="card">
-    <h2>Buscar producto o código</h2>
-    <select id="productos">
-      <option value="" disabled selected>Selecciona un producto…</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <h2>Agregar productos manualmente</h2>
-    <textarea id="manualInput" rows="4" placeholder="Escribe productos manuales aquí..."></textarea>
-    <button onclick="agregarDesdeManual()">Añadir a la lista</button>
-  </div>
-
-  <div class="card">
-    <h2>Productos seleccionados</h2>
-    <ul id="listaProductos"></ul>
-    <button onclick="hacerPedido()">Hacer pedido</button>
-  </div>
-
   <script>
     async function cargarProductos() {
       try {
