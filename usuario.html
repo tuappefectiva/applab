@@ -1,257 +1,181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Usuario – Laboratorio</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #b9e6b9;
-      color: #004832;
-      padding: 20px;
-    }
-    h1, h2 {
-      color: #004832;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,72,50,.25);
-    }
-    select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background-color: #ffffff;
-    }
-    button {
-      background-color: #004832;
-      color: #ffffff;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 20px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    ul {
-      list-style-type: disc;
-      padding-left: 20px;
-    }
-  </style>
 </head>
 <body>
+
   <h1>Usuario – Laboratorio</h1>
+
+  <h3>Buscar producto o código</h3>
+  <!-- Buscador escribible (+ datalist de sugerencias). Sin clases, sin estilos nuevos. -->
+  <input id="buscadorProducto" list="listaProductos" placeholder="Escribe para buscar…" autocomplete="off" />
+  <datalist id="listaProductos"></datalist>
+
+  <h3>Productos seleccionados</h3>
+  <ul id="productosSeleccionados"></ul>
+
+  <button type="button" id="hacerPedidoBtn">Hacer pedido</button>
+
   <script>
-    async function cargarProductos() {
+  document.addEventListener('DOMContentLoaded', function () {
+    // =======================
+    //  CONFIGURACIÓN
+    // =======================
+    // 1) Sustituye la primera URL por TU RAW de GitHub si usas GitHub.
+    // 2) La segunda es fallback local (misma carpeta que usuario.html).
+    const DATA_URLS = [
+      'https://raw.githubusercontent.com/USUARIO/REPO/RAMA/ruta/productos_usuario_limpio.json', // <-- tu RAW aquí
+      'productos_usuario_limpio.json'
+    ];
+
+    const OLD_SELECT_ID = 'productoSelect';           // si existía, lo eliminamos
+    const SEARCH_ID     = 'buscadorProducto';
+    const DATALIST_ID   = 'listaProductos';
+    const LIST_ID       = 'productosSeleccionados';
+    const PEDIDO_BTN_ID = 'hacerPedidoBtn';
+
+    // =======================
+    //  LIMPIEZA: eliminar primer desplegable si existiera
+    // =======================
+    const oldSelect = document.getElementById(OLD_SELECT_ID);
+    if (oldSelect && oldSelect.parentElement) {
+      oldSelect.parentElement.removeChild(oldSelect);
+    }
+
+    // =======================
+    //  REFERENCIAS
+    // =======================
+    const searchInput = document.getElementById(SEARCH_ID);
+    const dataList    = document.getElementById(DATALIST_ID);
+    const listEl      = document.getElementById(LIST_ID);
+    const hacerBtn    = document.getElementById(PEDIDO_BTN_ID);
+
+    // Estado
+    let productos = [];                          // [{nombre, codigo}]
+    const byCodeExact = new Map();               // código tal cual -> producto
+    const byCodeNorm  = new Map();               // código normalizado -> producto
+    const selectedMap = new Map();               // código -> { cantidad, el, nombre }
+
+    // Aviso si se abre con file:// (fetch no funcionará)
+    if (location.protocol === 'file:') {
+      console.warn('Abierta con file://. Usa un servidor (http://) para que fetch funcione.');
+      info('⚠️ Abre la página desde un servidor (http://). Con file:// no se podrán cargar los productos.');
+    }
+
+    // =======================
+    //  CARGAR PRODUCTOS (RAW GitHub -> fallback local)
+    // =======================
+    (async function cargarProductos() {
       try {
-        const res = await fetch('productos_usuario_limpio.json');
-        const data = await res.json();
-        const select = document.getElementById('productos');
-        data.forEach(p => {
-          const option = document.createElement('option');
-          option.value = `${p.nombre} (${p.codigo})`;
-          option.textContent = `${p.nombre} (${p.codigo})`;
-          select.appendChild(option);
+        const { text, urlUsada } = await fetchFirstAvailable(DATA_URLS, { cache: 'no-store' });
+        productos = parseProductosFlexible(text);
+        productos.forEach(p => {
+          byCodeExact.set(p.codigo, p);
+          byCodeNorm.set(normalize(p.codigo), p);
         });
+        console.log(`✅ Productos cargados: ${productos.length} (desde ${urlUsada})`);
+        searchInput.disabled = false;
       } catch (err) {
-        console.error('Error al cargar productos:', err);
+        console.error('No se pudieron cargar los productos:', err);
+        info('❌ Error cargando el archivo de productos. Revisa el enlace RAW o el archivo local.');
+        searchInput.disabled = true;
       }
-    }
+    })();
 
-    document.getElementById('productos').addEventListener('change', function() {
-      const value = this.value;
-      if (value) {
-        agregarALista(value);
-        this.selectedIndex = 0;
+    // =======================
+    //  BÚSQUEDA Y ADICIÓN
+    // =======================
+    // Filtrado por “contiene” (nombre o código), ignorando acentos y mayúsculas.
+    // Soporta múltiples palabras: todas deben aparecer.
+    searchInput.addEventListener('input', () => {
+      const val = searchInput.value;
+      const norm = normalize(val);
+      renderDatalist(norm);
+
+      // Si el usuario selecciona una opción del datalist, el valor será el CÓDIGO.
+      // Añadimos en cuanto el valor coincida con un código (sin distinguir mayúsculas/acentos).
+      if (byCodeNorm.has(norm) || byCodeExact.has(val)) {
+        const prod = byCodeNorm.get(norm) || byCodeExact.get(val);
+        addProducto(prod);
+        searchInput.value = '';
+        dataList.innerHTML = '';
       }
     });
 
-    function agregarDesdeManual() {
-      const textarea = document.getElementById('manualInput');
-      const lineas = textarea.value.split('
-').map(l => l.trim()).filter(Boolean);
-      lineas.forEach(agregarALista);
-      textarea.value = '';
-    }
-
-    function agregarALista(texto) {
-      const ul = document.getElementById('listaProductos');
-      const li = document.createElement('li');
-      li.textContent = texto;
-      ul.appendChild(li);
-    }
-
-    function isoWeekYear(date = new Date()) {
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-      const year = d.getUTCFullYear();
-      return { week, year };
-    }
-
-    function hacerPedido() {
-      const items = Array.from(document.querySelectorAll('#listaProductos li')).map(li => li.textContent);
-      if (items.length === 0) {
-        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
-        return;
+    // Por si 'change' se dispara con elecciones del datalist en algunos navegadores
+    searchInput.addEventListener('change', () => {
+      const val = searchInput.value;
+      const norm = normalize(val);
+      if (byCodeNorm.has(norm) || byCodeExact.has(val)) {
+        const prod = byCodeNorm.get(norm) || byCodeExact.get(val);
+        addProducto(prod);
+        searchInput.value = '';
+        dataList.innerHTML = '';
       }
-      const { week, year } = isoWeekYear();
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      pedidos.push({ productos: items, semana: week, anio: year });
-      localStorage.setItem('pedidos', JSON.stringify(pedidos));
-      window.location.href = 'admin.html';
-    }
-
-    cargarProductos();
-  </script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  // =======================
-  //  CONFIGURACIÓN
-  // =======================
-  // 1) Si usas GitHub, pon aquí TU enlace RAW primero.
-  // 2) El segundo es fallback local (misma carpeta que usuario.html).
-  const DATA_URLS = [
-    'https://raw.githubusercontent.com/USUARIO/REPO/RAMA/ruta/productos_usuario_limpio.json', // <-- Sustituye si usas GitHub RAW
-    'productos_usuario_limpio.json' // fallback local
-  ];
-
-  // IDs esperados en tu HTML (si no existen, se crearán bajo los encabezados)
-  const SELECT_ID = 'productoSelect';
-  const LIST_ID   = 'productosSeleccionados';
-  const PEDIDO_BTN_ID = 'hacerPedidoBtn'; // opcional
-
-  // =======================
-  //  AVISO file://
-  // =======================
-  if (location.protocol === 'file:') {
-    console.warn('Abierta con file://. Usa un servidor (http://) para que fetch funcione.');
-    info('⚠️ Abre la página desde un servidor (http://). Con file:// no se podrán cargar los productos.');
-  }
-
-  // =======================
-  //  OBTENER/CREAR ELEMENTOS (sin tocar estilos)
-  // =======================
-  const selectEl = document.getElementById(SELECT_ID) || createSelect();
-  const listEl   = document.getElementById(LIST_ID)   || createList();
-  const hacerBtn = document.getElementById(PEDIDO_BTN_ID) || null;
-
-  // Mapa de productos seleccionados: codigo -> { cantidad, el (li), nombre }
-  const selectedMap = new Map();
-
-  // =======================
-  //  CARGA DE PRODUCTOS
-  // =======================
-  (async function cargarProductos() {
-    try {
-      const { text, urlUsada } = await fetchFirstAvailable(DATA_URLS, { cache: 'no-store' });
-      const productos = parseProductosFlexible(text);
-      if (!productos.length) {
-        console.warn('No se extrajo ningún producto del archivo.');
-        info('⚠️ No se encontraron productos. Verifica el formato del archivo (JSON válido o pares "nombre … codigo …").');
-        return;
-      }
-      fillSelect(selectEl, productos);
-      selectEl.disabled = false;
-      console.log(`✅ Cargados ${productos.length} productos desde: ${urlUsada}`);
-    } catch (err) {
-      console.error('No se pudieron cargar los productos:', err);
-      info('❌ Error cargando el archivo de productos. Revisa el enlace RAW de GitHub o el archivo local.');
-    }
-  })();
-
-  // =======================
-  //  EVENTOS
-  // =======================
-  // Al cambiar la opción, se añade automáticamente a "Productos seleccionados"
-  selectEl.addEventListener('change', () => {
-    const opt = selectEl.options[selectEl.selectedIndex];
-    if (!opt || !opt.value) return;
-    addProducto({ codigo: opt.value, nombre: opt.dataset.nombre });
-    // Volver al placeholder para permitir otra selección
-    selectEl.value = '';
-  });
-
-  // (Opcional) "Hacer pedido"
-  if (hacerBtn) {
-    hacerBtn.addEventListener('click', () => {
-      const pedido = Array.from(selectedMap.entries()).map(([codigo, o]) =>
-        ({ codigo, nombre: o.nombre, cantidad: o.cantidad })
-      );
-      console.log('Pedido listo para enviar:', pedido);
-      // TODO: Integra tu backend/panel de administración y limpia:
-      // fetch('/api/pedidos', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ items: pedido })
-      // })
-      // .then(res => res.json())
-      // .then(() => resetSeleccion())
-      // .catch(console.error);
     });
-  }
 
-  // =======================
-  //  UTILIDADES
-  // =======================
+    // (Opcional) "Hacer pedido" - ahora mismo solo muestra el payload
+    if (hacerBtn) {
+      hacerBtn.addEventListener('click', () => {
+        const pedido = Array.from(selectedMap.entries()).map(([codigo, o]) =>
+          ({ codigo, nombre: o.nombre, cantidad: o.cantidad })
+        );
+        console.log('Pedido listo para enviar:', pedido);
+        // TODO: integrar con tu backend y, si procede:
+        // resetSeleccion();
+      });
+    }
 
-  // Intenta hacer fetch de la primera URL que funcione
-  async function fetchFirstAvailable(urls, fetchOpts) {
-    let lastError = null;
-    for (const url of urls) {
-      try {
-        const r = await fetch(url, fetchOpts);
-        if (r.ok) {
-          const text = await r.text();
-          return { text, urlUsada: url };
-        } else {
-          lastError = new Error(`HTTP ${r.status} en ${url}`);
+    // =======================
+    //  FUNCIONES
+    // =======================
+
+    // Intenta hacer fetch de la primera URL que funcione
+    async function fetchFirstAvailable(urls, fetchOpts) {
+      let lastError = null;
+      for (const url of urls) {
+        try {
+          const r = await fetch(url, fetchOpts);
+          if (r.ok) {
+            const text = await r.text();
+            return { text, urlUsada: url };
+          } else {
+            lastError = new Error(`HTTP ${r.status} en ${url}`);
+          }
+        } catch (e) {
+          lastError = e;
         }
-      } catch (e) {
-        lastError = e;
       }
+      throw lastError || new Error('No se pudo obtener ninguna de las URLs proporcionadas.');
     }
-    throw lastError || new Error('No se pudo obtener ninguna de las URLs proporcionadas.');
-  }
 
-  // ---------- Parseo flexible ----------
-  // 1) Intenta JSON. Admite:
-  //    - Array de objetos [{nombre, codigo}, ...] (o {name, code}).
-  //    - Objeto con una propiedad contenedora (p.ej. { productos: [...] }).
-  // 2) Si no es JSON, usa regex "nombre ... codigo ...".
-  function parseProductosFlexible(text) {
-    // Primer intento: JSON
-    try {
-      const data = JSON.parse(text);
-      const arr = normalizeJsonProducts(data);
-      if (Array.isArray(arr) && arr.length) return arr;
-    } catch (_) {
-      // no es JSON: seguimos con regex
+    // --- Parseo flexible ---
+    // 1) Intenta JSON (array u objeto con {productos|items|data}).
+    // 2) Si no, parsea texto con pares "nombre ... codigo ...".
+    function parseProductosFlexible(text) {
+      // Intento 1: JSON
+      try {
+        const data = JSON.parse(text);
+        const arr = normalizeJsonProducts(data);
+        if (Array.isArray(arr) && arr.length) return arr;
+      } catch (_) {}
+      // Intento 2: texto "nombre ... codigo ..."
+      return parseNombreCodigo(text);
     }
-    // Segundo intento: texto con "nombre ... codigo ..."
-    return parseNombreCodigo(text);
-  }
 
-  // Normaliza distintas estructuras JSON a [{nombre, codigo}]
-  function normalizeJsonProducts(data) {
-    const candidates = Array.isArray(data) ? data
-                     : Array.isArray(data?.productos) ? data.productos
-                     : Array.isArray(data?.items) ? data.items
-                     : Array.isArray(data?.data) ? data.data
-                     : null;
-    if (!candidates) return [];
-    return candidates
-      .map(x => {
+    // Normaliza estructuras JSON a [{nombre, codigo}]
+    function normalizeJsonProducts(data) {
+      const list = Array.isArray(data) ? data
+                : Array.isArray(data?.productos) ? data.productos
+                : Array.isArray(data?.items) ? data.items
+                : Array.isArray(data?.data) ? data.data
+                : null;
+      if (!list) return [];
+      return list.map(x => {
         if (typeof x === 'string') {
-          // Posible "Nombre — COD" en string
           const m = x.match(/^(.*?)[\s—-]+\s*([^\s]+)\s*$/);
           return m ? { nombre: m[1].trim(), codigo: m[2].trim() } : null;
         }
@@ -261,122 +185,112 @@ document.addEventListener('DOMContentLoaded', function () {
           if (nombre && codigo) return { nombre: String(nombre), codigo: String(codigo) };
         }
         return null;
-      })
-      .filter(Boolean);
-  }
-
-  // Parser de texto: extrae pares "nombre ... codigo ..."
-  function parseNombreCodigo(text) {
-    const productos = [];
-    // Captura nombre (lazy, admite saltos de línea) y código (token sin espacios)
-    const re = /nombre\s+([\s\S]+?)\s+codigo\s+([^\s]+)/gi;
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      const nombre = m[1].trim().replace(/\s+/g, ' ');
-      const codigo = m[2].trim();
-      if (nombre && codigo) productos.push({ nombre, codigo });
+      }).filter(Boolean);
     }
-    return productos;
-  }
 
-  // Rellena el <select>
-  function fillSelect(select, productos) {
-    // Garantizar placeholder
-    if (!select.querySelector('option[value=""]')) {
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'Selecciona un producto…';
-      placeholder.disabled = true;
-      placeholder.selected = true;
-      select.appendChild(placeholder);
+    // Parser de texto: “nombre … codigo …”
+    function parseNombreCodigo(text) {
+      const productos = [];
+      const re = /nombre\s+([\s\S]+?)\s+codigo\s+([^\s]+)/gi;
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        const nombre = m[1].trim().replace(/\s+/g, ' ');
+        const codigo = m[2].trim();
+        if (nombre && codigo) productos.push({ nombre, codigo });
+      }
+      return productos;
     }
-    const frag = document.createDocumentFragment();
-    productos.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.codigo;
-      opt.textContent = `${p.nombre} — ${p.codigo}`;
-      opt.dataset.nombre = p.nombre;
-      frag.appendChild(opt);
-    });
-    select.appendChild(frag);
-  }
 
-  // Añade o incrementa producto en la lista
-  function addProducto(prod) {
-    if (selectedMap.has(prod.codigo)) {
-      const entry = selectedMap.get(prod.codigo);
-      entry.cantidad += 1;
-      const qtyEl = entry.el.querySelector('[data-role="cantidad"]');
-      if (qtyEl) qtyEl.textContent = entry.cantidad;
-      return;
+    // Normaliza cadenas para comparar (sin acentos, mayúsculas)
+    function normalize(s) {
+      return (s || '')
+        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+        .toUpperCase().trim();
     }
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span>
-        <strong>${escapeHtml(prod.nombre)}</strong>
-        — <code>${escapeHtml(prod.codigo)}</code>
-        · x<span data-role="cantidad">1</span>
-      </span>
-      <button type="button" data-role="remove" aria-label="Quitar ${escapeHtml(prod.nombre)}">Quitar</button>
-    `;
-    li.querySelector('[data-role="remove"]').addEventListener('click', () => {
-      selectedMap.delete(prod.codigo);
-      li.remove();
-    });
-    listEl.appendChild(li);
-    selectedMap.set(prod.codigo, { cantidad: 1, el: li, nombre: prod.nombre });
-  }
 
-  // Reset (si decides limpiar tras enviar pedido)
-  function resetSeleccion() {
-    selectedMap.clear();
-    listEl.innerHTML = '';
-    selectEl.value = '';
-  }
+    // Renderiza opciones del datalist filtrando por “contiene”
+    // Soporta múltiples palabras: todas deben aparecer en (nombre + código)
+    function renderDatalist(termNorm) {
+      const MAX_OPTS = 200;
+      dataList.innerHTML = '';
 
-  // Helpers
-  function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
+      const terms = termNorm.split(/\s+/).filter(Boolean);
+      if (!terms.length) return;
 
-  // --- Creadores no intrusivos (no cambian estilos/colores) ---
-  function createSelect() {
-    const select = document.createElement('select');
-    select.id = SELECT_ID;
-    select.disabled = true;
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Selecciona un producto…';
-    placeholder.selected = true; placeholder.disabled = true;
-    select.appendChild(placeholder);
-    injectUnderHeading('Buscar producto o código', select);
-    return select;
-  }
+      const results = productos.filter(p => {
+        const haystack = normalize(p.nombre + ' ' + p.codigo);
+        return terms.every(t => haystack.includes(t));
+      });
 
-  function createList() {
-    const ul = document.createElement('ul');
-    ul.id = LIST_ID;
-    injectUnderHeading('Productos seleccionados', ul);
-    return ul;
-  }
+      results.sort((a, b) => score(a, terms) - score(b, terms));
 
-  function injectUnderHeading(headingText, node) {
-    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4'));
-    const target = headings.find(h => h.textContent.trim().toLowerCase().includes(headingText.toLowerCase()));
-    if (target && target.parentElement) {
-      target.parentElement.appendChild(node);
-    } else {
-      document.body.appendChild(node);
+      for (let i = 0; i < Math.min(results.length, MAX_OPTS); i++) {
+        const p = results[i];
+        const opt = document.createElement('option');
+        opt.value = p.codigo;                       // lo que se inserta en el input
+        opt.label = `${p.nombre} — ${p.codigo}`;    // lo que se ve en la lista
+        dataList.appendChild(opt);
+      }
     }
-  }
 
-  function info(texto) {
-    const p = document.createElement('p');
-    p.textContent = texto;
-    // No añadimos estilos ni clases para no modificar tu diseño
-    document.body.appendChild(p);
-  }
-});
-</script>
+    // Puntuación sencilla para ordenar coincidencias
+    function score(p, terms) {
+      const n = normalize(p.nombre);
+      const c = normalize(p.codigo);
+      const joined = n + ' ' + c;
+      // Priorizar: empieza por código/nombre > contiene en código > contiene en nombre
+      const startsCode = terms.every(t => c.startsWith(t)) ? 0 : 999;
+      const startsName = terms.every(t => n.startsWith(t)) ? 1 : 999;
+      const inCode     = terms.every(t => c.includes(t))   ? 2 : 999;
+      const inName     = terms.every(t => n.includes(t))   ? 3 : 999;
+      const inAny      = terms.every(t => joined.includes(t)) ? 4 : 999;
+      return Math.min(startsCode, startsName, inCode, inName, inAny);
+    }
+
+    // Añade o incrementa un producto en la lista de seleccionados
+    function addProducto(p) {
+      if (selectedMap.has(p.codigo)) {
+        const entry = selectedMap.get(p.codigo);
+        entry.cantidad += 1;
+        const qtyEl = entry.el.querySelector('[data-role="cantidad"]');
+        if (qtyEl) qtyEl.textContent = entry.cantidad;
+        return;
+      }
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span>
+          <strong>${escapeHtml(p.nombre)}</strong>
+          — <code>${escapeHtml(p.codigo)}</code>
+          · x<span data-role="cantidad">1</span>
+        </span>
+        <button type="button" data-role="remove" aria-label="Quitar ${escapeHtml(p.nombre)}">Quitar</button>
+      `;
+      li.querySelector('[data-role="remove"]').addEventListener('click', () => {
+        selectedMap.delete(p.codigo);
+        li.remove();
+      });
+      listEl.appendChild(li);
+      selectedMap.set(p.codigo, { cantidad: 1, el: li, nombre: p.nombre });
+    }
+
+    function resetSeleccion() {
+      selectedMap.clear();
+      listEl.innerHTML = '';
+      searchInput.value = '';
+      dataList.innerHTML = '';
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function info(texto) {
+      const p = document.createElement('p');
+      p.textContent = texto;
+      // Sin clases ni estilos para no alterar tu diseño
+      document.body.appendChild(p);
+    }
+  });
+  </script>
 </body>
 </html>
