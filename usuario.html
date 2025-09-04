@@ -50,6 +50,7 @@
 
   <div class="card">
     <h2>Buscar producto o código</h2>
+    <input type="text" id="buscador" placeholder="Buscar producto..." />
     <select id="productos">
       <option value="" disabled selected>Selecciona un producto…</option>
     </select>
@@ -68,29 +69,51 @@
   </div>
 
   <script>
-    async function cargarProductos() {
-      try {
-        const res = await fetch('https://raw.githubusercontent.com/tu-usuario/tu-repo/main/productos_usuario_limpio.json');
-        const data = await res.json();
-        const select = document.getElementById('productos');
-        data.forEach(p => {
-          const option = document.createElement('option');
-          option.value = `${p.nombre} (${p.codigo})`;
-          option.textContent = `${p.nombre} (${p.codigo})`;
-          select.appendChild(option);
-        });
-      } catch (err) {
-        console.error('Error al cargar productos:', err);
-      }
-    }
+  async function cargarProductos() {
+    try {
+      const res = await fetch('https://raw.githubusercontent.com/tu-usuario/tu-repo/main/productos_usuario_limpio.json');
+      const data = await res.json();
+      const select = document.getElementById('productos');
+      select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
+      data.forEach(p => {
+        const option = document.createElement('option');
+        option.value = `${p.nombre} (${p.codigo})`;
+        option.textContent = `${p.nombre} (${p.codigo})`;
+        select.appendChild(option);
+      });
 
-    document.getElementById('productos').addEventListener('change', function() {
-      const value = this.value;
-      if (value) {
-        agregarALista(value);
-        this.selectedIndex = 0;
-      }
-    });
+      // Guardamos los productos para filtrar luego
+      window.productosOriginales = data;
+    } catch (err) {
+      console.error('Error al cargar productos:', err);
+    }
+  }
+
+  // Filtrado dinámico
+  document.getElementById('buscador').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    const select = document.getElementById('productos');
+    select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
+    window.productosOriginales
+      .filter(p => `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro))
+      .forEach(p => {
+        const option = document.createElement('option');
+        option.value = `${p.nombre} (${p.codigo})`;
+        option.textContent = `${p.nombre} (${p.codigo})`;
+        select.appendChild(option);
+      });
+  });
+
+  document.getElementById('productos').addEventListener('change', function() {
+    const value = this.value;
+    if (value) {
+      agregarALista(value);
+      this.selectedIndex = 0;
+    }
+  });
+
+  cargarProductos();
+</script>
 
     function agregarDesdeManual() {
       const textarea = document.getElementById('manualInput');
