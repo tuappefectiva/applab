@@ -1,218 +1,136 @@
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  // =======================
-  //  Configuración
-  // =======================
-  // 1) PON AQUÍ TU ENLACE RAW DE GITHUB (primero del array).
-  // 2) El segundo es un fallback local por si lo sirves junto a usuario.html.
-  const DATA_URLS = [
-    'https://raw.githubusercontent.com/tuappefectiva/applab/refs/heads/main/productos_usuario_limpio.json', // <-- Sustituye por tu RAW
-    'productos_usuario.json' // fallback local (misma carpeta que usuario.html)
-  ];
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Usuario – Laboratorio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #b9e6b9;
+      color: #004832;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #004832;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,72,50,.25);
+    }
+    select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: #ffffff;
+    }
+    button {
+      background-color: #004832;
+      color: #f6ff2e6;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Usuario – Laboratorio</h1>
 
-  const SELECT_ID     = 'productoSelect';
-  const LIST_ID       = 'productosSeleccionados';
-  const PEDIDO_BTN_ID = 'hacerPedidoBtn'; // opcional (si existe en tu HTML)
+  <div class="card">
+    <h2>Buscar producto o código</h2>
+    <select id="productos">
+      <option value="" disabled selected>Selecciona un producto…</option>
+    </select>
+  </div>
 
-  // =======================
-  //  Aviso si se abre con file://
-  // =======================
-  if (location.protocol === 'file:') {
-    console.warn('Esta página está abierta con file://. Usa un servidor (http://) para que fetch funcione.');
-    info('⚠️ Abre la página desde un servidor (http://). Con file:// no se podrán cargar los productos.');
-  }
+  <div class="card">
+    <h2>Agregar productos manualmente</h2>
+    <textarea id="manualInput" rows="4" placeholder="Escribe productos manuales aquí..."></textarea>
+    <button onclick="agregarDesdeManual()">Añadir a la lista</button>
+  </div>
 
-  // =======================
-  //  Obtener/crear elementos (no cambiamos estilos)
-  // =======================
-  const selectEl = document.getElementById(SELECT_ID) || createSelect();
-  const listEl   = document.getElementById(LIST_ID)   || createList();
-  const hacerBtn = document.getElementById(PEDIDO_BTN_ID) || null;
+  <div class="card">
+    <h2>Productos seleccionados</h2>
+    <ul id="listaProductos"></ul>
+    <button onclick="hacerPedido()">Hacer pedido</button>
+  </div>
 
-  // Mapa de seleccionados: codigo -> { cantidad, el (li), nombre }
-  const selectedMap = new Map();
+  <script>
+    async function cargarProductos() {
+      try {
+        const res = await fetch('productos_usuario_limpio.json');
+        const data = await res.json();
+        const select = document.getElementById('productos');
+        data.forEach(p => {
+          const option = document.createElement('option');
+          option.value = `${p.nombre} (${p.codigo})`;
+          option.textContent = `${p.nombre} (${p.codigo})`;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Error al cargar productos:', err);
+      }
+    }
 
-  // =======================
-  //  Cargar y parsear productos (GitHub Raw -> fallback local)
-  // =======================
-  (async function cargarProductos() {
-    try {
-      const { text, urlUsada } = await fetchFirstAvailable(DATA_URLS, { cache: 'no-store' });
-      const productos = parseProductos(text);
-      if (!productos.length) {
-        console.warn('No se extrajo ningún producto del archivo.');
-        info('⚠️ No se encontraron productos. Verifica que existan pares "nombre … codigo …" en el archivo.');
+    document.getElementById('productos').addEventListener('change', function() {
+      const value = this.value;
+      if (value) {
+        agregarALista(value);
+        this.selectedIndex = 0;
+      }
+    });
+
+    function agregarDesdeManual() {
+      const textarea = document.getElementById('manualInput');
+      const lineas = textarea.value.split('
+').map(l => l.trim()).filter(Boolean);
+      lineas.forEach(agregarALista);
+      textarea.value = '';
+    }
+
+    function agregarALista(texto) {
+      const ul = document.getElementById('listaProductos');
+      const li = document.createElement('li');
+      li.textContent = texto;
+      ul.appendChild(li);
+    }
+
+    function isoWeekYear(date = new Date()) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      const year = d.getUTCFullYear();
+      return { week, year };
+    }
+
+    function hacerPedido() {
+      const items = Array.from(document.querySelectorAll('#listaProductos li')).map(li => li.textContent);
+      if (items.length === 0) {
+        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
         return;
       }
-      fillSelect(selectEl, productos);
-      selectEl.disabled = false;
-      console.log(`✅ Cargados ${productos.length} productos desde: ${urlUsada}`);
-    } catch (err) {
-      console.error('No se pudieron cargar los productos:', err);
-      info('❌ Error cargando el archivo de productos. Revisa el enlace RAW de GitHub o el archivo local.');
+      const { week, year } = isoWeekYear();
+      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+      pedidos.push({ productos: items, semana: week, anio: year });
+      localStorage.setItem('pedidos', JSON.stringify(pedidos));
+      window.location.href = 'admin.html';
     }
-  })();
 
-  // =======================
-  //  Eventos
-  // =======================
-  // Al elegir un producto, se añade automáticamente a "Productos seleccionados"
-  selectEl.addEventListener('change', () => {
-    const opt = selectEl.options[selectEl.selectedIndex];
-    if (!opt || !opt.value) return;
-    addProducto({ codigo: opt.value, nombre: opt.dataset.nombre });
-    // Volver al placeholder para permitir otra selección
-    selectEl.value = '';
-  });
-
-  // (Opcional) "Hacer pedido"
-  if (hacerBtn) {
-    hacerBtn.addEventListener('click', () => {
-      const pedido = Array.from(selectedMap.entries()).map(([codigo, o]) =>
-        ({ codigo, nombre: o.nombre, cantidad: o.cantidad })
-      );
-      console.log('Pedido listo para enviar:', pedido);
-      // TODO: Integra tu backend/panel de administración:
-      // fetch('/api/pedidos', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ items: pedido })
-      // })
-      // .then(res => res.json())
-      // .then(() => resetSeleccion())
-      // .catch(console.error);
-    });
-  }
-
-  // =======================
-  //  Utilidades
-  // =======================
-
-  // Intenta hacer fetch de la primera URL que funcione
-  async function fetchFirstAvailable(urls, fetchOpts) {
-    let lastError = null;
-    for (const url of urls) {
-      try {
-        const r = await fetch(url, fetchOpts);
-        if (r.ok) {
-          const text = await r.text();
-          return { text, urlUsada: url };
-        } else {
-          lastError = new Error(`HTTP ${r.status} en ${url}`);
-        }
-      } catch (e) {
-        lastError = e;
-      }
-    }
-    throw lastError || new Error('No se pudo obtener ninguna de las URLs proporcionadas.');
-  }
-
-  // Parser robusto: extrae pares "nombre ... codigo ...", soporta texto seguido o con saltos de línea
-  function parseProductos(text) {
-    const productos = [];
-    // Captura nombre (modo lazy) entre "nombre" y "codigo", y el código como token sin espacios
-    const re = /nombre\s+([\s\S]+?)\s+codigo\s+([^\s]+)/gi;
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      const nombre = m[1].trim().replace(/\s+/g, ' ');
-      const codigo = m[2].trim();
-      if (nombre && codigo) productos.push({ nombre, codigo });
-    }
-    return productos;
-  }
-
-  function fillSelect(select, productos) {
-    // Garantizar placeholder
-    if (!select.querySelector('option[value=""]')) {
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'Selecciona un producto…';
-      placeholder.disabled = true;
-      placeholder.selected = true;
-      select.appendChild(placeholder);
-    }
-    const frag = document.createDocumentFragment();
-    productos.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.codigo;
-      opt.textContent = `${p.nombre} — ${p.codigo}`;
-      opt.dataset.nombre = p.nombre;
-      frag.appendChild(opt);
-    });
-    select.appendChild(frag);
-  }
-
-  function addProducto(prod) {
-    if (selectedMap.has(prod.codigo)) {
-      const entry = selectedMap.get(prod.codigo);
-      entry.cantidad += 1;
-      const qtyEl = entry.el.querySelector('[data-role="cantidad"]');
-      if (qtyEl) qtyEl.textContent = entry.cantidad;
-      return;
-    }
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span>
-        <strong>${escapeHtml(prod.nombre)}</strong>
-        — <code>${escapeHtml(prod.codigo)}</code>
-        · x<span data-role="cantidad">1</span>
-      </span>
-      <button type="button" data-role="remove" aria-label="Quitar ${escapeHtml(prod.nombre)}">Quitar</button>
-    `;
-    li.querySelector('[data-role="remove"]').addEventListener('click', () => {
-      selectedMap.delete(prod.codigo);
-      li.remove();
-    });
-    listEl.appendChild(li);
-    selectedMap.set(prod.codigo, { cantidad: 1, el: li, nombre: prod.nombre });
-  }
-
-  function resetSeleccion() {
-    selectedMap.clear();
-    listEl.innerHTML = '';
-    selectEl.value = '';
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-
-  // --- Creadores no intrusivos (no cambian estilos/colores) ---
-  function createSelect() {
-    const select = document.createElement('select');
-    select.id = SELECT_ID;
-    select.disabled = true;
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Selecciona un producto…';
-    placeholder.selected = true; placeholder.disabled = true;
-    select.appendChild(placeholder);
-    injectUnderHeading('Buscar producto o código', select);
-    return select;
-  }
-
-  function createList() {
-    const ul = document.createElement('ul');
-    ul.id = LIST_ID;
-    injectUnderHeading('Productos seleccionados', ul);
-    return ul;
-  }
-
-  function injectUnderHeading(headingText, node) {
-    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4'));
-    const target = headings.find(h => h.textContent.trim().toLowerCase().includes(headingText.toLowerCase()));
-    if (target && target.parentElement) {
-      target.parentElement.appendChild(node);
-    } else {
-      document.body.appendChild(node);
-    }
-  }
-
-  function info(texto) {
-    const p = document.createElement('p');
-    p.textContent = texto;
-    // No añadimos estilos ni clases para no modificar tu diseño
-    document.body.appendChild(p);
-  }
-});
-</script>
+    cargarProductos();
+  </script>
+</body>
+</html>
