@@ -114,46 +114,5 @@
 
   cargarProductos();
 </script>
-
-    function agregarDesdeManual() {
-      const textarea = document.getElementById('manualInput');
-      const lineas = textarea.value.split('
-').map(l => l.trim()).filter(Boolean);
-      lineas.forEach(agregarALista);
-      textarea.value = '';
-    }
-
-    function agregarALista(texto) {
-      const ul = document.getElementById('listaProductos');
-      const li = document.createElement('li');
-      li.textContent = texto;
-      ul.appendChild(li);
-    }
-
-    function isoWeekYear(date = new Date()) {
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-      const year = d.getUTCFullYear();
-      return { week, year };
-    }
-
-    function hacerPedido() {
-      const items = Array.from(document.querySelectorAll('#listaProductos li')).map(li => li.textContent);
-      if (items.length === 0) {
-        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
-        return;
-      }
-      const { week, year } = isoWeekYear();
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      pedidos.push({ productos: items, semana: week, anio: year });
-      localStorage.setItem('pedidos', JSON.stringify(pedidos));
-      window.location.href = 'admin.html';
-    }
-
-    cargarProductos();
-  </script>
 </body>
 </html>
