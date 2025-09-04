@@ -48,24 +48,21 @@
 <body>
   <h1>Usuario – Laboratorio</h1>
 
-  <div class="card">
-    <h2>Buscar producto o código</h2>
-    <select id="productos_usuario_limpio.json">
-      <option value="" disabled selected>Selecciona un producto…</option>
-    </select>
-  </div>
+<!-- En la sección “Buscar producto o código” -->
+<select id="productoSelect">
+  <option value="">Selecciona un producto…</option>
+</select>
 
-  <div class="card">
-    <h2>Agregar productos manualmente</h2>
-    <textarea id="manualInput" rows="4" placeholder="Escribe productos manuales aquí..."></textarea>
-    <button onclick="agregarDesdeManual()">Añadir a la lista</button>
-  </div>
+<!-- Puedes mantener tu input manual si lo usas; esto es solo para el desplegable -->
 
-  <div class="card">
-    <h2>Productos seleccionados</h2>
-    <ul id="listaProductos"></ul>
-    <button onclick="hacerPedido()">Hacer pedido</button>
-  </div>
+<!-- En “Agregar productos manualmente” -->
+<button type="button" id="agregarBtn">Añadir a la lista</button>
+
+<!-- En “Productos seleccionados” -->
+<ul id="productosSeleccionados"></ul>
+
+<!-- Tu botón actual -->
+<button type="button" id="hacerPedidoBtn">Hacer pedido</button>
 
   <script>
     async function cargarProductos() {
@@ -132,5 +129,166 @@
 
     cargarProductos();
   </script>
+  <script>
+(function () {
+  const SELECT_ID = 'productoSelect';
+  const ADD_BTN_ID = 'agregarBtn';
+  const LIST_ID = 'productosSeleccionados';
+  const HacerPedido_ID = 'hacerPedidoBtn';
+  const DATA_URL = 'productos_usuario.json';
+
+  const selectEl = document.getElementById(SELECT_ID) || createSelect();
+  const addBtn   = document.getElementById(ADD_BTN_ID) || createAddButton();
+  const listEl   = document.getElementById(LIST_ID) || createList();
+  const hacerBtn = document.getElementById(HacerPedido_ID) || null;
+
+  // Mapa de seleccionados: codigo -> { cantidad, el (li), nombre }
+  const selectedMap = new Map();
+
+  // Cargar datos del “json” tal y como está (pares: nombre ... codigo ...)
+  fetch(DATA_URL)
+    .then(r => r.text())
+    .then(texto => parseProductosDesdeTexto(texto))
+    .then(productos => {
+      fillSelect(selectEl, productos);
+      addBtn.disabled = false;
+      selectEl.disabled = false;
+    })
+    .catch(err => {
+      console.error('No se pudieron cargar los productos:', err);
+    });
+
+  // Añadir al hacer clic en “Añadir a la lista”
+  addBtn.addEventListener('click', () => {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    if (!opt || !opt.value) return;
+    addProducto({ codigo: opt.value, nombre: opt.dataset.nombre });
+  });
+
+  // (Opcional) Enviar pedido - por ahora solo muestra el payload en consola
+  if (hacerBtn) {
+    hacerBtn.addEventListener('click', () => {
+      const pedido = Array.from(selectedMap.entries()).map(([codigo, o]) =>
+        ({ codigo, nombre: o.nombre, cantidad: o.cantidad })
+      );
+      console.log('Pedido listo para enviar:', pedido);
+      // TODO: Aquí podemos integrar el envío a tu panel de administración o backend
+      // fetch('/api/pedidos', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ items: pedido }) })
+      //   .then(res => res.json())
+      //   .then(() => { selectedMap.clear(); listEl.innerHTML=''; selectEl.selectedIndex = 0; })
+      //   .catch(console.error);
+    });
+  }
+
+  // ------- Utilidades -------
+  function parseProductosDesdeTexto(text) {
+    // Admite formato como: "nombre ... codigo ABC123 nombre ... codigo DEF456 ..."
+    const items = [];
+    // Separar por cada aparición de "nombre "
+    const partes = text.split(/nombre\s+/g);
+    for (let i = 1; i < partes.length; i++) {
+      const parte = partes[i];
+      const trozos = parte.split(/\s+codigo\s+/);
+      if (trozos.length < 2) continue;
+      const nombre = trozos[0].trim().replace(/\s+/g, ' ');
+      const codigo = trozos[1].split(/\r?\n/)[0].trim();
+      if (nombre && codigo) items.push({ nombre, codigo });
+    }
+    return items;
+  }
+
+  function fillSelect(select, productos) {
+    const frag = document.createDocumentFragment();
+    // Mantener opción placeholder si existe
+    if (!select.querySelector('option[value=""]')) {
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Selecciona un producto…';
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      frag.appendChild(placeholder);
+    }
+    productos.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.codigo;
+      opt.textContent = `${p.nombre} — ${p.codigo}`;
+      opt.dataset.nombre = p.nombre;
+      frag.appendChild(opt);
+    });
+    select.appendChild(frag);
+  }
+
+  function addProducto(prod) {
+    if (selectedMap.has(prod.codigo)) {
+      const entry = selectedMap.get(prod.codigo);
+      entry.cantidad += 1;
+      entry.el.querySelector('[data-role="cantidad"]').textContent = entry.cantidad;
+      return;
+    }
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span>
+        <strong>${escapeHtml(prod.nombre)}</strong>
+        — <code>${escapeHtml(prod.codigo)}</code>
+        · x<span data-role="cantidad">1</span>
+      </span>
+      <button type="button" data-role="remove" aria-label="Quitar ${escapeHtml(prod.nombre)}">Quitar</button>
+    `;
+    li.querySelector('[data-role="remove"]').addEventListener('click', () => {
+      selectedMap.delete(prod.codigo);
+      li.remove();
+    });
+    listEl.appendChild(li);
+    selectedMap.set(prod.codigo, { cantidad: 1, el: li, nombre: prod.nombre });
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // Los 3 creadores siguientes intentan no alterar tu maquetación:
+  // solo insertan los elementos si NO existen y los ubican bajo el
+  // encabezado cuyo texto coincide (si existe), sin estilos adicionales.
+  function createSelect() {
+    const select = document.createElement('select');
+    select.id = SELECT_ID;
+    select.disabled = true;
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Selecciona un producto…';
+    placeholder.selected = true; placeholder.disabled = true;
+    select.appendChild(placeholder);
+    injectUnderHeading('Buscar producto o código', select);
+    return select;
+  }
+
+  function createAddButton() {
+    const btn = document.createElement('button');
+    btn.id = ADD_BTN_ID;
+    btn.type = 'button';
+    btn.textContent = 'Añadir a la lista';
+    btn.disabled = true;
+    injectUnderHeading('Agregar productos manualmente', btn);
+    return btn;
+  }
+
+  function createList() {
+    const ul = document.createElement('ul');
+    ul.id = LIST_ID;
+    injectUnderHeading('Productos seleccionados', ul);
+    return ul;
+  }
+
+  function injectUnderHeading(headingText, node) {
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4'));
+    const target = headings.find(h => h.textContent.trim().toLowerCase().includes(headingText.toLowerCase()));
+    if (target && target.parentElement) {
+      target.parentElement.appendChild(node);
+    } else {
+      document.body.appendChild(node);
+    }
+  }
+})();
+</script>
 </body>
 </html>
