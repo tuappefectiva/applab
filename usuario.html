@@ -71,7 +71,7 @@
   <script>
   async function cargarProductos() {
     try {
-      const res = await fetch('https://raw.githubusercontent.com/tu-usuario/tu-repo/main/productos_usuario_limpio.json');
+      const res = await fetch('productos_usuario_limpio.json');
       const data = await res.json();
       const select = document.getElementById('productos');
       select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
