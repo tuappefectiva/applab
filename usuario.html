@@ -51,9 +51,8 @@
   <div class="card">
     <h2>Buscar producto o código</h2>
     <input type="text" id="buscador" placeholder="Buscar producto..." />
-    <select id="`productos`">
+   <select id="productos">
     </select>
-      <button onclick="agregarDesdeManual()">Añadir a la lista</button>
   </div> 
 
   <div class="card">
@@ -88,7 +87,12 @@
       console.error('Error al cargar productos:', err);
     }
   }
-
+function agregarALista(texto) {
+  const ul = document.getElementById('listaProductos');
+  const li = document.createElement('li');
+  li.textContent = texto;
+  ul.appendChild(li);
+}
   // Filtrado dinámico
   document.getElementById('buscador').addEventListener('input', function() {
     const filtro = this.value.toLowerCase();
