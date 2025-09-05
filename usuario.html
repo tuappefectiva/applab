@@ -107,6 +107,37 @@ function agregarALista(texto) {
         select.appendChild(option);
       });
   });
+function hacerPedido() {
+  const lista = document.getElementById('listaProductos');
+  const items = Array.from(lista.querySelectorAll('li')).map(li => li.textContent);
+
+  if (items.length === 0) {
+    alert('La lista está vacía. Añade productos antes de hacer el pedido.');
+    return;
+  }
+
+  const { week, year } = isoWeekYear();
+
+  // Guardar en zona de administración (localStorage)
+  const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+  pedidos.push({ productos: items, semana: week, anio: year });
+  localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+  // Limpiar la lista del usuario
+  lista.innerHTML = '';
+
+  // Redirigir a la zona admin
+  window.location.href = 'admin.html';
+}
+function isoWeekYear(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  const year = d.getUTCFullYear();
+  return { week, year };
+}
 
   document.getElementById('productos').addEventListener('change', function() {
     const value = this.value;
