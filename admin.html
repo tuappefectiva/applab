@@ -1,13 +1,69 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Administration</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Administración – Pedidos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      padding: 20px;
+    }
+    h1 {
+      color: #004832;
+    }
+    .pedido {
+      background-color: #ffffff;
+      border-left: 5px solid #004832;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .pedido h3 {
+      margin-top: 0;
+    ul {
+      padding-left: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Admin</h1>
-  <div id="pedidos"></div>
-  <script src="script_admin.js"></script>
+  <h1>Pedidos realizados</h1>
+  <div id="zonaPedidos"></div>
+
+  <script>
+    function mostrarPedidos() {
+      const zona = document.getElementById('zonaPedidos');
+      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+
+      if (pedidos.length === 0) {
+        zona.innerHTML = '<p>No hay pedidos registrados.</p>';
+        return;
+      }
+
+      pedidos.forEach((pedido, index) => {
+        const div = document.createElement('div');
+        div.className = 'pedido';
+
+        const encabezado = document.createElement('h3');
+        encabezado.textContent = `Pedido #${index + 1} – Semana ${pedido.semana}, ${pedido.anio}`;
+        div.appendChild(encabezado);
+
+        const lista = document.createElement('ul');
+        pedido.productos.forEach(prod => {
+          const li = document.createElement('li');
+          li.textContent = prod;
+          lista.appendChild(li);
+        });
+
+        div.appendChild(lista);
+        zona.appendChild(div);
+      });
+    }
+
+    mostrarPedidos();
+  </script>
 </body>
 </html>
