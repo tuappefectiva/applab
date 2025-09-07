@@ -21,7 +21,7 @@
       margin-bottom: 20px;
       box-shadow: 0 4px 10px rgba(0,72,50,.25);
     }
-    select, textarea {
+    select, textarea, input {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
@@ -43,6 +43,21 @@
       list-style-type: disc;
       padding-left: 20px;
     }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .remove-btn {
+      background-color: #e74c3c;
+      border: none;
+      border-radius: 999px;
+      color: white;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
@@ -50,9 +65,9 @@
 
   <div class="card">
     <h2>Buscar producto</h2>
-   <select id="productos">
-    </select>
-  </div> 
+    <input type="text" id="buscador" placeholder="Filtrar por nombre o código..." />
+    <select id="productos"></select>
+  </div>
 
   <div class="card">
     <h2>Agregar productos manualmente</h2>
@@ -67,83 +82,95 @@
   </div>
 
   <script>
-  async function cargarProductos() {
-    try {
-      const res = await fetch('productos_usuario_limpio.json');
-      const data = await res.json();
+    async function cargarProductos() {
+      try {
+        const res = await fetch('productos_usuario_limpio.json');
+        const data = await res.json();
+        window.productosOriginales = data;
+        actualizarSelect(data);
+      } catch (err) {
+        console.error('Error al cargar productos:', err);
+      }
+    }
+
+    function actualizarSelect(productos) {
       const select = document.getElementById('productos');
       select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
-      data.forEach(p => {
+      productos.forEach(p => {
         const option = document.createElement('option');
         option.value = `${p.nombre} (${p.codigo})`;
         option.textContent = `${p.nombre} (${p.codigo})`;
         select.appendChild(option);
       });
-
-      // Guardamos los productos para filtrar luego
-      window.productosOriginales = data;
-    } catch (err) {
-      console.error('Error al cargar productos:', err);
     }
-  }
-function agregarALista(texto) {
-  const ul = document.getElementById('listaProductos');
-  const li = document.createElement('li');
-  li.textContent = texto;
-  ul.appendChild(li);
-}
-  // Filtrado dinámico
-  document.getElementById('buscador').addEventListener('input', function() {
-    const filtro = this.value.toLowerCase();
-    const select = document.getElementById('productos');
-    select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
-    window.productosOriginales
-      .filter(p => `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro))
-      .forEach(p => {
-        const option = document.createElement('option');
-        option.value = `${p.nombre} (${p.codigo})`;
-        option.textContent = `${p.nombre} (${p.codigo})`;
-        select.appendChild(option);
-      });
-  });
-function hacerPedido() {
-  const lista = document.getElementById('listaProductos');
-  const items = Array.from(lista.querySelectorAll('li')).map(li => li.textContent);
 
-  if (items.length === 0) {
-    alert('La lista está vacía. Añade productos antes de hacer el pedido.');
-    return;
-  }
+    function agregarALista(texto) {
+      const ul = document.getElementById('listaProductos');
+      const li = document.createElement('li');
+      li.textContent = texto;
 
-  const { week, year } = isoWeekYear();
+      const btn = document.createElement('button');
+      btn.textContent = 'Eliminar';
+      btn.className = 'remove-btn';
+      btn.onclick = () => li.remove();
 
-  // Guardar en zona de administración (localStorage)
-  const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-  pedidos.push({ productos: items, semana: week, anio: year });
-  localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-  // Limpiar la lista del usuario
-  lista.innerHTML = '';
-
-function isoWeekYear(date = new Date()) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  const year = d.getUTCFullYear();
-  return { week, year };
-}
-
-  document.getElementById('productos').addEventListener('change', function() {
-    const value = this.value;
-    if (value) {
-      agregarALista(value);
-      this.selectedIndex = 0;
+      li.appendChild(btn);
+      ul.appendChild(li);
     }
-  });
 
-  cargarProductos();
-</script>
+    function agregarDesdeManual() {
+      const texto = document.getElementById('manualInput').value.trim();
+      if (texto) {
+        agregarALista(texto);
+        document.getElementById('manualInput').value = '';
+      }
+    }
+
+    function hacerPedido() {
+      const lista = document.getElementById('listaProductos');
+      const items = Array.from(lista.querySelectorAll('li')).map(li => li.firstChild.textContent);
+
+      if (items.length === 0) {
+        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
+        return;
+      }
+
+      const { week, year } = isoWeekYear();
+      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+      pedidos.push({ productos: items, semana: week, anio: year });
+      localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+      lista.innerHTML = '';
+      alert('Pedido realizado correctamente.');
+    }
+
+    function isoWeekYear(date = new Date()) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      const year = d.getUTCFullYear();
+      return { week, year };
+    }
+
+    document.getElementById('productos').addEventListener('change', function () {
+      const value = this.value;
+      if (value) {
+        agregarALista(value);
+        this.selectedIndex = 0;
+      }
+    });
+
+    document.getElementById('buscador').addEventListener('input', function () {
+      const filtro = this.value.toLowerCase();
+      const filtrados = window.productosOriginales.filter(p =>
+        `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro)
+      );
+      actualizarSelect(filtrados);
+    });
+
+    cargarProductos();
+  </script>
 </body>
 </html>
