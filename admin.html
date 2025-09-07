@@ -24,18 +24,41 @@
     }
     .pedido h3 {
       margin-top: 0;
+    }
     ul {
       padding-left: 20px;
+    }
+    .btn-eliminar {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #limpiarTodo {
+      background-color: #004832;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
   <h1>Pedidos realizados</h1>
+  <button id="limpiarTodo">🗑️ Limpiar todos los pedidos</button>
   <div id="zonaPedidos"></div>
 
   <script>
     function mostrarPedidos() {
       const zona = document.getElementById('zonaPedidos');
+      zona.innerHTML = ''; // Limpiar antes de mostrar
+
       const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
 
       if (pedidos.length === 0) {
@@ -57,11 +80,31 @@
           li.textContent = prod;
           lista.appendChild(li);
         });
-
         div.appendChild(lista);
+
+        const btnEliminar = document.createElement('button');
+        btnEliminar.textContent = 'Eliminar este pedido';
+        btnEliminar.className = 'btn-eliminar';
+        btnEliminar.onclick = () => eliminarPedido(index);
+        div.appendChild(btnEliminar);
+
         zona.appendChild(div);
       });
     }
+
+    function eliminarPedido(index) {
+      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+      pedidos.splice(index, 1);
+      localStorage.setItem('pedidos', JSON.stringify(pedidos));
+      mostrarPedidos();
+    }
+
+    document.getElementById('limpiarTodo').addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que quieres eliminar todos los pedidos?')) {
+        localStorage.removeItem('pedidos');
+        mostrarPedidos();
+      }
+    });
 
     mostrarPedidos();
   </script>
