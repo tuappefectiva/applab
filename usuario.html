@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Usuario – Laboratorio (con Ubicación)</title>
+  <title>Usuario – Laboratorio (con Ubicación y Catálogo)</title>
   <style>
     :root{
       --bg:#f6f8fb; --card:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
@@ -17,23 +17,35 @@
     .grid{display:grid; grid-template-columns:1fr; gap:16px}
     @media(min-width:900px){.grid{grid-template-columns:repeat(12,1fr)}}
     .card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px}
+    .span-4{grid-column:span 12}
     .span-6{grid-column:span 12}
+    .span-8{grid-column:span 12}
     .span-12{grid-column:span 12}
-    @media(min-width:900px){.span-6{grid-column:span 6}.span-12{grid-column:span 12}}
+    @media(min-width:900px){
+      .span-4{grid-column:span 4}
+      .span-6{grid-column:span 6}
+      .span-8{grid-column:span 8}
+      .span-12{grid-column:span 12}
+    }
     h2{margin:0 0 12px 0; font-size:18px}
     .row{display:flex; flex-wrap:wrap; gap:12px}
     .field{display:flex; flex-direction:column; gap:6px; min-width:200px; flex:1}
     label{font-size:12px; color:var(--muted)}
-    input[type=text], input[type=number], select{padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff}
+    input[type=text], input[type=number], select, textarea{
+      padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff
+    }
+    select[size]{padding:8px}
     .btn{appearance:none; background:var(--primary); color:#fff; border:1px solid transparent; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:600}
     .btn:hover{background:var(--primary-600)}
     .btn-ghost{background:transparent; color:var(--text); border-color:var(--border)}
     .btn-danger{background:var(--danger)}
+    .btn-inline{align-self:flex-end; flex:0}
 
     .list{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px}
     .item{display:flex; justify-content:space-between; align-items:center; gap:12px; border:1px solid var(--border); border-radius:10px; padding:10px}
     .item-ubicacion{background:#f9fafb}
     .muted{color:var(--muted)}
+    .badge{display:inline-block; border:1px solid var(--border); border-radius:999px; padding:6px 10px; background:#fafafa; font-size:12px}
     .notice{font-size:12px; color:var(--muted); margin-top:8px}
   </style>
 </head>
@@ -43,7 +55,7 @@
     <p class="muted">Busca o agrega productos, selecciona la ubicación y envía el pedido al área de administración.</p>
 
     <main class="grid">
-      <!-- Buscar producto -->
+      <!-- A) Buscar producto (placeholder para tu futuro buscador) -->
       <section class="card span-6" aria-labelledby="tit-buscar">
         <h2 id="tit-buscar">Buscar producto</h2>
         <div class="row">
@@ -51,14 +63,14 @@
             <label for="q">Nombre o código</label>
             <input id="q" type="text" placeholder="Ej.: Puntas 200 µL o 12-345" />
           </div>
-          <div class="field" style="align-self:flex-end; flex:0">
+          <div class="field btn-inline">
             <button type="button" class="btn btn-ghost" id="btn-buscar">Buscar</button>
           </div>
         </div>
-        <p class="notice">*Conecta aquí tu buscador real cuando lo tengas listo.</p>
+        <p class="notice">*Conecta aquí tu lógica de búsqueda propia cuando esté lista.</p>
       </section>
 
-      <!-- Agregar productos manualmente -->
+      <!-- B) Agregar productos manualmente -->
       <section class="card span-6" aria-labelledby="tit-manual">
         <h2 id="tit-manual">Agregar productos manualmente</h2>
         <div class="row">
@@ -74,14 +86,46 @@
             <label for="m-cantidad">Cantidad</label>
             <input id="m-cantidad" type="number" min="1" value="1" />
           </div>
-          <div class="field" style="align-self:flex-end; flex:0">
+          <div class="field btn-inline">
             <button type="button" class="btn" id="btn-add-manual">Añadir a la lista</button>
           </div>
         </div>
       </section>
 
-      <!-- Ubicación del solicitante -->
-      <section class="card span-6" aria-labelledby="tit-ubicacion" id="card-ubicacion">
+      <!-- C) NUEVO: Catálogo desde productos_usuario_limpio.json -->
+      <section class="card span-8" aria-labelledby="tit-catalogo">
+        <h2 id="tit-catalogo">Catálogo (productos_usuario_limpio.json)</h2>
+
+        <div class="row">
+          <div class="field" style="flex:2">
+            <label for="filtro">Filtrar por nombre o código</label>
+            <input id="filtro" type="text" placeholder="Escribe para filtrar…" />
+          </div>
+          <div class="field" style="max-width:160px">
+            <label for="cat-cantidad">Cantidad</label>
+            <input id="cat-cantidad" type="number" min="1" value="1" />
+          </div>
+          <div class="field btn-inline">
+            <button type="button" class="btn" id="btn-add-catalogo">Añadir seleccionado</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field" style="flex:2">
+            <label for="catalogo-lista">Resultados</label>
+            <select id="catalogo-lista" size="8"></select>
+          </div>
+
+          <div class="field" style="flex:1">
+            <label for="catalogo-file">Si no se carga automáticamente, carga el archivo aquí</label>
+            <input id="catalogo-file" type="file" accept=".json,.txt" />
+            <p class="notice" id="catalogo-msg">Intentando cargar <code>productos_usuario_limpio.json</code>…</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- D) Ubicación del solicitante -->
+      <section class="card span-4" aria-labelledby="tit-ubicacion" id="card-ubicacion">
         <h2 id="tit-ubicacion">Ubicación del solicitante</h2>
         <div class="row">
           <div class="field">
@@ -92,14 +136,14 @@
               <option value="Águilas">Águilas</option>
             </select>
           </div>
-          <div class="field" style="align-self:flex-end; flex:0">
+          <div class="field btn-inline">
             <button type="button" class="btn" id="btn-add-ubicacion">Añadir ubicación</button>
           </div>
         </div>
         <p class="notice">Pulsa <strong>“Añadir ubicación”</strong> para que se muestre en <em>Productos seleccionados</em> y viaje con el pedido.</p>
       </section>
 
-      <!-- Productos seleccionados -->
+      <!-- E) Productos seleccionados -->
       <section class="card span-12" aria-labelledby="tit-seleccion">
         <h2 id="tit-seleccion">Productos seleccionados</h2>
         <ul class="list" id="lista-productos"></ul>
@@ -113,19 +157,36 @@
   </div>
 
   <script>
-    let productos = [];
-    let ubicacion = '';
-    let ubicacionSeleccionada = '';
+    // ------------------------------
+    // Estado
+    // ------------------------------
+    let productos = [];                 // {id, nombre, codigo, cantidad}
+    let ubicacion = '';                 // Ubicación confirmada (aparece en lista)
+    let ubicacionSeleccionada = '';     // Selección provisional en el select
+    let catalogo = [];                  // {nombre, codigo}
+    let catalogoFiltrado = [];          // vista filtrada
 
+    // ------------------------------
+    // Elementos
+    // ------------------------------
     const elLista = document.getElementById('lista-productos');
     const elMsg = document.getElementById('msg');
 
+    const elFiltro = document.getElementById('filtro');
+    const elCatLista = document.getElementById('catalogo-lista');
+    const elCatCantidad = document.getElementById('cat-cantidad');
+    const elCatMsg = document.getElementById('catalogo-msg');
+    const elCatFile = document.getElementById('catalogo-file');
+
+    // ------------------------------
+    // Utilidades
+    // ------------------------------
     const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()));
 
     function render(){
       elLista.innerHTML = '';
 
-      // 1) Ubicación como primer elemento de la lista (si se ha añadido)
+      // (1) Ubicación como primer ítem
       if (ubicacion){
         const liU = document.createElement('li');
         liU.className = 'item item-ubicacion';
@@ -133,7 +194,7 @@
         elLista.appendChild(liU);
       }
 
-      // 2) Productos
+      // (2) Productos
       if (productos.length === 0){
         const li = document.createElement('li');
         li.className = 'item';
@@ -159,69 +220,32 @@
       render();
     }
 
-    // --- Eventos ---
-    document.getElementById('btn-add-manual').addEventListener('click', () => {
-      const nombre = document.getElementById('m-nombre').value.trim();
-      const codigo = document.getElementById('m-codigo').value.trim();
-      const cantidad = parseInt(document.getElementById('m-cantidad').value, 10) || 1;
-      if (!nombre){ elMsg.textContent = 'Indica al menos el nombre del producto.'; return; }
-      productos.push({ id: uid(), nombre, codigo, cantidad });
-      document.getElementById('m-nombre').value = '';
-      document.getElementById('m-codigo').value = '';
-      document.getElementById('m-cantidad').value = '1';
-      elMsg.textContent = '';
-      render();
-    });
+    function normaliza(str){
+      return String(str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\\u0300-\\u036f]/g, ''); // quita tildes
+    }
 
-    document.getElementById('sel-ubicacion').addEventListener('change', (e) => {
-      ubicacionSeleccionada = e.target.value; // No fija la ubicación hasta pulsar el botón
-    });
-
-    document.getElementById('btn-add-ubicacion').addEventListener('click', () => {
-      if (!ubicacionSeleccionada){
-        elMsg.textContent = 'Selecciona la ubicación (Almería o Águilas) antes de añadirla.';
-        return;
+    function parseCatalog(texto){
+      // El archivo viene como texto plano: "nombre ... codigo ... nombre ... codigo ..."
+      // Extraemos pares con regex robusta.
+      const rx = /nombre\\s+(.*?)\\s+codigo\\s+([^\\s\\n]+)(?=\\s+nombre\\s+|$)/gsi;
+      const items = [];
+      let m;
+      while ((m = rx.exec(texto)) !== null){
+        const nombre = m[1].trim().replace(/\\s+/g, ' ');
+        const codigo = m[2].trim();
+        if (nombre) items.push({ nombre, codigo });
       }
-      ubicacion = ubicacionSeleccionada;
-      elMsg.textContent = 'Ubicación añadida a la selección.';
-      render();
-      setTimeout(() => { elMsg.textContent = ''; }, 2000);
-    });
+      return items;
+    }
 
-    document.getElementById('btn-vaciar').addEventListener('click', () => {
-      // Vacía todo lo mostrado en “Productos seleccionados”, incluida la ubicación
-      productos = [];
-      ubicacion = '';
-      elMsg.textContent = '';
-      render();
-    });
+    function renderCatalog(filtro = ''){
+      const f = normaliza(filtro);
+      elCatLista.innerHTML = '';
+      catalogoFiltrado = (f ? catalogo.filter(x =>
+        normaliza(x.nombre).includes(f) || normaliza(x.codigo).includes(f)
+      ) : catalogo);
 
-    document.getElementById('btn-hacer-pedido').addEventListener('click', () => {
-      if (productos.length === 0){ elMsg.textContent = 'Añade al menos un producto antes de enviar el pedido.'; return; }
-      if (!ubicacion){ elMsg.textContent = 'Añade la ubicación del solicitante con el botón correspondiente.'; return; }
-
-      const pedido = {
-        id: uid(),
-        creadoEnISO: new Date().toISOString(),
-        ubicacion,
-        productos: productos.map(p => ({ nombre: p.nombre, codigo: p.codigo, cantidad: p.cantidad }))
-      };
-
-      const KEY = 'zonaAdmin_pedidos';
-      const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
-      arr.push(pedido);
-      localStorage.setItem(KEY, JSON.stringify(arr));
-
-      // Reset para nuevo pedido
-      productos = []; ubicacion = ''; ubicacionSeleccionada = '';
-      document.getElementById('sel-ubicacion').value = '';
-      render();
-
-      elMsg.textContent = '¡Pedido enviado!';
-      elMsg.style.color = 'var(--success)';
-      setTimeout(() => { elMsg.textContent = ''; elMsg.style.color = ''; }, 2500);
-    });
-
-    render();
-  </script>
-</body>
+      if (catalogoFiltrado.length === 0){
