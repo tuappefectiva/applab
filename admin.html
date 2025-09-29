@@ -35,6 +35,11 @@
       font-weight: bold;
       margin-left: 10px;
     }
+    .fecha {
+      color: #666;
+      font-size: 12px;
+      font-style: italic;
+    }
     ul {
       padding-left: 20px;
     }
@@ -47,7 +52,7 @@
       cursor: pointer;
       margin-top: 10px;
     }
-    #limpiarTodo {
+    #limpiarTodo, #btnActualizar {
       background-color: #004832;
       color: white;
       border: none;
@@ -56,91 +61,240 @@
       font-weight: bold;
       cursor: pointer;
       margin-bottom: 20px;
+      margin-right: 10px;
     }
-    .info-conexion {
+    .config-info {
       background-color: #fff3cd;
       border: 1px solid #ffc107;
-      padding: 10px;
+      padding: 15px;
       border-radius: 8px;
       margin-bottom: 20px;
+    }
+    .config-info input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .config-info button {
+      background-color: #004832;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #004832;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>Pedidos realizados</h1>
   
-  <div class="info-conexion">
-    <strong>ℹ️ Información:</strong> Esta página muestra los pedidos guardados en localStorage. 
-    Para que funcione correctamente, tanto usuario.html como admin.html deben abrirse desde el mismo servidor/origen.
+  <div class="config-info" id="configPanel">
+    <h2>⚙️ Configuración del Sistema</h2>
+    <p><strong>Instrucciones:</strong></p>
+    <ol>
+      <li>Ve a <a href="https://jsonbin.io/" target="_blank">jsonbin.io</a> y crea una cuenta gratuita</li>
+      <li>Crea un nuevo Bin y copia su ID</li>
+      <li>Ve a "API Keys" y crea una clave con permisos de lectura y escritura</li>
+      <li>Pega los mismos datos que usaste en usuario.html:</li>
+    </ol>
+    <label>BIN ID:</label>
+    <input type="text" id="binId" placeholder="Ej: 673a1b2c3d4e5f6g7h8i9j0k" />
+    <label>API KEY:</label>
+    <input type="password" id="apiKey" placeholder="Tu API Key de JSONBin" />
+    <button onclick="guardarConfig()">💾 Guardar Configuración</button>
   </div>
 
+  <button id="btnActualizar" onclick="cargarPedidos()">🔄 Actualizar</button>
   <button id="limpiarTodo">🗑️ Limpiar todos los pedidos</button>
+  
   <div id="zonaPedidos"></div>
 
   <script>
-    function mostrarPedidos() {
-      const zona = document.getElementById('zonaPedidos');
-      zona.innerHTML = '';
+    const CONFIG_KEY = 'jsonbin_config';
+    let config = null;
 
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+    function cargarConfiguracion() {
+      const stored = localStorage.getItem(CONFIG_KEY);
+      if (stored) {
+        config = JSON.parse(stored);
+        document.getElementById('binId').value = config.binId;
+        document.getElementById('apiKey').value = config.apiKey;
+        document.getElementById('configPanel').style.display = 'none';
+      }
+    }
 
-      if (pedidos.length === 0) {
-        zona.innerHTML = '<p>No hay pedidos registrados.</p>';
+    function guardarConfig() {
+      const binId = document.getElementById('binId').value.trim();
+      const apiKey = document.getElementById('apiKey').value.trim();
+      
+      if (!binId || !apiKey) {
+        alert('Por favor completa ambos campos');
+        return;
+      }
+      
+      config = { binId, apiKey };
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+      document.getElementById('configPanel').style.display = 'none';
+      alert('✅ Configuración guardada correctamente');
+      cargarPedidos();
+    }
+
+    async function cargarPedidos() {
+      if (!config || !config.binId || !config.apiKey) {
+        alert('⚠️ Por favor configura primero el sistema con tu BIN ID y API KEY');
         return;
       }
 
-      pedidos.forEach((pedido, index) => {
-        const div = document.createElement('div');
-        div.className = 'pedido';
+      const zona = document.getElementById('zonaPedidos');
+      zona.innerHTML = '<div class="loading">⏳ Cargando pedidos...</div>';
 
-        const encabezado = document.createElement('h3');
-        encabezado.textContent = `Pedido #${index + 1} — Semana ${pedido.semana}, ${pedido.anio}`;
-        
-        if (pedido.ubicacion) {
-          const spanUbicacion = document.createElement('span');
-          spanUbicacion.className = 'ubicacion';
-          spanUbicacion.textContent = pedido.ubicacion;
-          encabezado.appendChild(spanUbicacion);
-        }
-        
-        div.appendChild(encabezado);
-
-        const lista = document.createElement('ul');
-        pedido.productos.forEach(prod => {
-          const li = document.createElement('li');
-          li.textContent = prod;
-          lista.appendChild(li);
+      try {
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
+          headers: {
+            'X-Access-Key': config.apiKey
+          }
         });
-        div.appendChild(lista);
 
-        const btnEliminar = document.createElement('button');
-        btnEliminar.textContent = 'Eliminar este pedido';
-        btnEliminar.className = 'btn-eliminar';
-        btnEliminar.onclick = () => eliminarPedido(index);
-        div.appendChild(btnEliminar);
+        if (!response.ok) {
+          throw new Error('Error al cargar pedidos');
+        }
 
-        zona.appendChild(div);
-      });
+        const data = await response.json();
+        const pedidos = data.record.pedidos || [];
+
+        zona.innerHTML = '';
+
+        if (pedidos.length === 0) {
+          zona.innerHTML = '<p>No hay pedidos registrados.</p>';
+          return;
+        }
+
+        pedidos.forEach((pedido, index) => {
+          const div = document.createElement('div');
+          div.className = 'pedido';
+
+          const encabezado = document.createElement('h3');
+          encabezado.textContent = `Pedido #${index + 1} — Semana ${pedido.semana}, ${pedido.anio}`;
+          
+          if (pedido.ubicacion) {
+            const spanUbicacion = document.createElement('span');
+            spanUbicacion.className = 'ubicacion';
+            spanUbicacion.textContent = pedido.ubicacion;
+            encabezado.appendChild(spanUbicacion);
+          }
+          
+          div.appendChild(encabezado);
+
+          if (pedido.fecha) {
+            const fecha = document.createElement('div');
+            fecha.className = 'fecha';
+            fecha.textContent = `Fecha: ${new Date(pedido.fecha).toLocaleString('es-ES')}`;
+            div.appendChild(fecha);
+          }
+
+          const lista = document.createElement('ul');
+          pedido.productos.forEach(prod => {
+            const li = document.createElement('li');
+            li.textContent = prod;
+            lista.appendChild(li);
+          });
+          div.appendChild(lista);
+
+          const btnEliminar = document.createElement('button');
+          btnEliminar.textContent = 'Eliminar este pedido';
+          btnEliminar.className = 'btn-eliminar';
+          btnEliminar.onclick = () => eliminarPedido(index);
+          div.appendChild(btnEliminar);
+
+          zona.appendChild(div);
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        zona.innerHTML = '<p style="color: red;">❌ Error al cargar pedidos. Verifica tu configuración.</p>';
+      }
     }
 
-    function eliminarPedido(index) {
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      pedidos.splice(index, 1);
-      localStorage.setItem('pedidos', JSON.stringify(pedidos));
-      mostrarPedidos();
+    async function eliminarPedido(index) {
+      if (!confirm('¿Estás seguro de que quieres eliminar este pedido?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
+          headers: {
+            'X-Access-Key': config.apiKey
+          }
+        });
+
+        const data = await response.json();
+        const pedidos = data.record.pedidos || [];
+        pedidos.splice(index, 1);
+
+        const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Access-Key': config.apiKey
+          },
+          body: JSON.stringify({ pedidos })
+        });
+
+        if (updateResponse.ok) {
+          cargarPedidos();
+        } else {
+          throw new Error('Error al eliminar');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al eliminar el pedido');
+      }
     }
 
-    document.getElementById('limpiarTodo').addEventListener('click', () => {
-      if (confirm('¿Estás seguro de que quieres eliminar todos los pedidos?')) {
-        localStorage.removeItem('pedidos');
-        mostrarPedidos();
+    document.getElementById('limpiarTodo').addEventListener('click', async () => {
+      if (!confirm('¿Estás seguro de que quieres eliminar todos los pedidos?')) {
+        return;
+      }
+
+      try {
+        const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Access-Key': config.apiKey
+          },
+          body: JSON.stringify({ pedidos: [] })
+        });
+
+        if (updateResponse.ok) {
+          cargarPedidos();
+        } else {
+          throw new Error('Error al limpiar');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al limpiar los pedidos');
       }
     });
 
-    // Actualizar automáticamente cada 2 segundos
-    setInterval(mostrarPedidos, 2000);
-    
-    mostrarPedidos();
+    // Cargar automáticamente cada 10 segundos
+    setInterval(() => {
+      if (config) cargarPedidos();
+    }, 10000);
+
+    cargarConfiguracion();
+    if (config) cargarPedidos();
   </script>
 </body>
 </html>
