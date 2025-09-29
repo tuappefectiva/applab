@@ -1,176 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Usuario – Laboratorio</title>
+  <title>Usuario – Laboratorio (con Ubicación)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #b9e6b9;
-      color: #004832;
-      padding: 20px;
+    :root{
+      --bg:#f6f8fb; --card:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+      --primary:#2563eb; --primary-600:#1d4ed8; --danger:#ef4444; --success:#16a34a;
     }
-    h1, h2 {
-      color: #004832;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,72,50,.25);
-    }
-    select, textarea, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background-color: #ffffff;
-    }
-    button {
-      background-color: #004832;
-      color: #ffffff;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 20px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    ul {
-      list-style-type: disc;
-      padding-left: 20px;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-    .remove-btn {
-      background-color: #e74c3c;
-      border: none;
-      border-radius: 999px;
-      color: white;
-      padding: 5px 10px;
-      cursor: pointer;
-      margin-left: 10px;
-    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,Segoe UI,Roboto,Arial,sans-serif; color:var(--text); background:var(--bg)}
+    .container{max-width:1100px; margin:28px auto; padding:0 16px}
+    h1{margin:0 0 6px 0; font-size:26px}
+    p.muted{color:var(--muted); margin:0 0 18px}
+    .grid{display:grid; grid-template-columns:1fr; gap:16px}
+    @media(min-width:900px){.grid{grid-template-columns:repeat(12,1fr)}}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px}
+    .span-6{grid-column:span 12}
+    .span-12{grid-column:span 12}
+    @media(min-width:900px){.span-6{grid-column:span 6}.span-12{grid-column:span 12}}
+    h2{margin:0 0 12px 0; font-size:18px}
+    .row{display:flex; flex-wrap:wrap; gap:12px}
+    .field{display:flex; flex-direction:column; gap:6px; min-width:200px; flex:1}
+    label{font-size:12px; color:var(--muted)}
+    input[type=text], input[type=number], select{padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff}
+    .btn{appearance:none; background:var(--primary); color:#fff; border:1px solid transparent; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:600}
+    .btn:hover{background:var(--primary-600)}
+    .btn-ghost{background:transparent; color:var(--text); border-color:var(--border)}
+    .btn-danger{background:var(--danger)}
+
+    .list{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px}
+    .item{display:flex; justify-content:space-between; align-items:center; gap:12px; border:1px solid var(--border); border-radius:10px; padding:10px}
+    .item-ubicacion{background:#f9fafb}
+    .muted{color:var(--muted)}
+    .notice{font-size:12px; color:var(--muted); margin-top:8px}
   </style>
 </head>
 <body>
-  <h1>Usuario – Laboratorio</h1>
+  <div class="container">
+    <h1>Usuario – Laboratorio</h1>
+    <p class="muted">Busca o agrega productos, selecciona la ubicación y envía el pedido al área de administración.</p>
 
-  <div class="card">
-    <h2>Buscar producto</h2>
-    <input type="text" id="buscador" placeholder="Filtrar por nombre o código..." />
-    <select id="productos"></select>
-  </div>
+    <main class="grid">
+      <!-- Buscar producto -->
+      <section class="card span-6" aria-labelledby="tit-buscar">
+        <h2 id="tit-buscar">Buscar producto</h2>
+        <div class="row">
+          <div class="field" style="flex:2">
+            <label for="q">Nombre o código</label>
+            <input id="q" type="text" placeholder="Ej.: Puntas 200 µL o 12-345" />
+          </div>
+          <div class="field" style="align-self:flex-end; flex:0">
+            <button type="button" class="btn btn-ghost" id="btn-buscar">Buscar</button>
+          </div>
+        </div>
+        <p class="notice">*Conecta aquí tu buscador real cuando lo tengas listo.</p>
+      </section>
 
-  <div class="card">
-    <h2>Agregar productos manualmente</h2>
-    <textarea id="manualInput" rows="4" placeholder="Escribe productos manuales aquí..."></textarea>
-    <button onclick="agregarDesdeManual()">Añadir a la lista</button>
-  </div>
+      <!-- Agregar productos manualmente -->
+      <section class="card span-6" aria-labelledby="tit-manual">
+        <h2 id="tit-manual">Agregar productos manualmente</h2>
+        <div class="row">
+          <div class="field">
+            <label for="m-nombre">Nombre del producto</label>
+            <input id="m-nombre" type="text" placeholder="Ej.: Guantes nitrilo" />
+          </div>
+          <div class="field">
+            <label for="m-codigo">Código</label>
+            <input id="m-codigo" type="text" placeholder="Opcional" />
+          </div>
+          <div class="field" style="max-width:160px">
+            <label for="m-cantidad">Cantidad</label>
+            <input id="m-cantidad" type="number" min="1" value="1" />
+          </div>
+          <div class="field" style="align-self:flex-end; flex:0">
+            <button type="button" class="btn" id="btn-add-manual">Añadir a la lista</button>
+          </div>
+        </div>
+      </section>
 
-  <div class="card">
-    <h2>Productos seleccionados</h2>
-    <ul id="listaProductos"></ul>
-    <button onclick="hacerPedido()">Hacer pedido</button>
+      <!-- Ubicación del solicitante -->
+      <section class="card span-6" aria-labelledby="tit-ubicacion" id="card-ubicacion">
+        <h2 id="tit-ubicacion">Ubicación del solicitante</h2>
+        <div class="row">
+          <div class="field">
+            <label for="sel-ubicacion">Selecciona ubicación</label>
+            <select id="sel-ubicacion">
+              <option value="" selected>— Selecciona —</option>
+              <option value="Almería">Almería</option>
+              <option value="Águilas">Águilas</option>
+            </select>
+          </div>
+          <div class="field" style="align-self:flex-end; flex:0">
+            <button type="button" class="btn" id="btn-add-ubicacion">Añadir ubicación</button>
+          </div>
+        </div>
+        <p class="notice">Pulsa <strong>“Añadir ubicación”</strong> para que se muestre en <em>Productos seleccionados</em> y viaje con el pedido.</p>
+      </section>
+
+      <!-- Productos seleccionados -->
+      <section class="card span-12" aria-labelledby="tit-seleccion">
+        <h2 id="tit-seleccion">Productos seleccionados</h2>
+        <ul class="list" id="lista-productos"></ul>
+        <div style="display:flex; gap:12px; margin-top:12px">
+          <button type="button" class="btn" id="btn-hacer-pedido">Hacer pedido</button>
+          <button type="button" class="btn btn-ghost" id="btn-vaciar">Vaciar selección</button>
+        </div>
+        <p id="msg" class="muted" style="margin-top:8px"></p>
+      </section>
+    </main>
   </div>
 
   <script>
-    async function cargarProductos() {
-      try {
-        const res = await fetch('productos_usuario_limpio.json');
-        const data = await res.json();
-        window.productosOriginales = data;
-        actualizarSelect(data);
-      } catch (err) {
-        console.error('Error al cargar productos:', err);
+    let productos = [];
+    let ubicacion = '';
+    let ubicacionSeleccionada = '';
+
+    const elLista = document.getElementById('lista-productos');
+    const elMsg = document.getElementById('msg');
+
+    const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random()));
+
+    function render(){
+      elLista.innerHTML = '';
+
+      // 1) Ubicación como primer elemento de la lista (si se ha añadido)
+      if (ubicacion){
+        const liU = document.createElement('li');
+        liU.className = 'item item-ubicacion';
+        liU.innerHTML = `<div><strong>Ubicación del solicitante:</strong> ${ubicacion}</div>`;
+        elLista.appendChild(liU);
+      }
+
+      // 2) Productos
+      if (productos.length === 0){
+        const li = document.createElement('li');
+        li.className = 'item';
+        li.innerHTML = '<span class="muted">No hay productos en la lista.</span>';
+        elLista.appendChild(li);
+      } else {
+        for (const p of productos){
+          const li = document.createElement('li');
+          li.className = 'item';
+          const left = document.createElement('div');
+          left.innerHTML = `<strong>${p.nombre}</strong> <span class="muted">${p.codigo ? '· ' + p.codigo + ' · ' : ''}x${p.cantidad}</span>`;
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-danger';
+          btn.textContent = 'Eliminar';
+          btn.addEventListener('click', () => removeProducto(p.id));
+          li.appendChild(left); li.appendChild(btn); elLista.appendChild(li);
+        }
       }
     }
 
-    function actualizarSelect(productos) {
-      const select = document.getElementById('productos');
-      select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
-      productos.forEach(p => {
-        const option = document.createElement('option');
-        option.value = `${p.nombre} (${p.codigo})`;
-        option.textContent = `${p.nombre} (${p.codigo})`;
-        select.appendChild(option);
-      });
+    function removeProducto(id){
+      productos = productos.filter(p => p.id !== id);
+      render();
     }
 
-    function agregarALista(texto) {
-      const ul = document.getElementById('listaProductos');
-      const li = document.createElement('li');
-      li.textContent = texto;
+    // --- Eventos ---
+    document.getElementById('btn-add-manual').addEventListener('click', () => {
+      const nombre = document.getElementById('m-nombre').value.trim();
+      const codigo = document.getElementById('m-codigo').value.trim();
+      const cantidad = parseInt(document.getElementById('m-cantidad').value, 10) || 1;
+      if (!nombre){ elMsg.textContent = 'Indica al menos el nombre del producto.'; return; }
+      productos.push({ id: uid(), nombre, codigo, cantidad });
+      document.getElementById('m-nombre').value = '';
+      document.getElementById('m-codigo').value = '';
+      document.getElementById('m-cantidad').value = '1';
+      elMsg.textContent = '';
+      render();
+    });
 
-      const btn = document.createElement('button');
-      btn.textContent = 'Eliminar';
-      btn.className = 'remove-btn';
-      btn.onclick = () => li.remove();
+    document.getElementById('sel-ubicacion').addEventListener('change', (e) => {
+      ubicacionSeleccionada = e.target.value; // No fija la ubicación hasta pulsar el botón
+    });
 
-      li.appendChild(btn);
-      ul.appendChild(li);
-    }
-
-    function agregarDesdeManual() {
-      const texto = document.getElementById('manualInput').value.trim();
-      if (texto) {
-        agregarALista(texto);
-        document.getElementById('manualInput').value = '';
-      }
-    }
-
-    function hacerPedido() {
-      const lista = document.getElementById('listaProductos');
-      const items = Array.from(lista.querySelectorAll('li')).map(li => li.firstChild.textContent);
-
-      if (items.length === 0) {
-        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
+    document.getElementById('btn-add-ubicacion').addEventListener('click', () => {
+      if (!ubicacionSeleccionada){
+        elMsg.textContent = 'Selecciona la ubicación (Almería o Águilas) antes de añadirla.';
         return;
       }
-
-      const { week, year } = isoWeekYear();
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      pedidos.push({ productos: items, semana: week, anio: year });
-      localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-      lista.innerHTML = '';
-      alert('Pedido realizado correctamente.');
-    }
-
-    function isoWeekYear(date = new Date()) {
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-      const year = d.getUTCFullYear();
-      return { week, year };
-    }
-
-    document.getElementById('productos').addEventListener('change', function () {
-      const value = this.value;
-      if (value) {
-        agregarALista(value);
-        this.selectedIndex = 0;
-      }
+      ubicacion = ubicacionSeleccionada;
+      elMsg.textContent = 'Ubicación añadida a la selección.';
+      render();
+      setTimeout(() => { elMsg.textContent = ''; }, 2000);
     });
 
-    document.getElementById('buscador').addEventListener('input', function () {
-      const filtro = this.value.toLowerCase();
-      const filtrados = window.productosOriginales.filter(p =>
-        `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro)
-      );
-      actualizarSelect(filtrados);
+    document.getElementById('btn-vaciar').addEventListener('click', () => {
+      // Vacía todo lo mostrado en “Productos seleccionados”, incluida la ubicación
+      productos = [];
+      ubicacion = '';
+      elMsg.textContent = '';
+      render();
     });
 
-    cargarProductos();
+    document.getElementById('btn-hacer-pedido').addEventListener('click', () => {
+      if (productos.length === 0){ elMsg.textContent = 'Añade al menos un producto antes de enviar el pedido.'; return; }
+      if (!ubicacion){ elMsg.textContent = 'Añade la ubicación del solicitante con el botón correspondiente.'; return; }
+
+      const pedido = {
+        id: uid(),
+        creadoEnISO: new Date().toISOString(),
+        ubicacion,
+        productos: productos.map(p => ({ nombre: p.nombre, codigo: p.codigo, cantidad: p.cantidad }))
+      };
+
+      const KEY = 'zonaAdmin_pedidos';
+      const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
+      arr.push(pedido);
+      localStorage.setItem(KEY, JSON.stringify(arr));
+
+      // Reset para nuevo pedido
+      productos = []; ubicacion = ''; ubicacionSeleccionada = '';
+      document.getElementById('sel-ubicacion').value = '';
+      render();
+
+      elMsg.textContent = '¡Pedido enviado!';
+      elMsg.style.color = 'var(--success)';
+      setTimeout(() => { elMsg.textContent = ''; elMsg.style.color = ''; }, 2500);
+    });
+
+    render();
   </script>
 </body>
-</html>
