@@ -45,9 +45,8 @@
     }
     li {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
+      flex-direction: column;
+      margin-bottom: 10px;
     }
     .remove-btn {
       background-color: #e74c3c;
@@ -56,7 +55,8 @@
       color: white;
       padding: 5px 10px;
       cursor: pointer;
-      margin-left: 10px;
+      align-self: flex-start;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -78,7 +78,20 @@
   <div class="card">
     <h2>Productos seleccionados</h2>
     <ul id="listaProductos"></ul>
+
+    <h2>Ubicación del solicitante</h2>
+    <select id="ubicacion">
+      <option value="" disabled selected>Selecciona ubicación…</option>
+      <option value="Almería">Almería</option>
+      <option value="Águilas">Águilas</option>
+    </select>
+
     <button onclick="hacerPedido()">Hacer pedido</button>
+  </div>
+
+  <div class="card">
+    <h2>Pedidos registrados</h2>
+    <ul id="listaPedidos"></ul>
   </div>
 
   <script>
@@ -129,6 +142,12 @@
     function hacerPedido() {
       const lista = document.getElementById('listaProductos');
       const items = Array.from(lista.querySelectorAll('li')).map(li => li.firstChild.textContent);
+      const ubicacion = document.getElementById('ubicacion').value;
+
+      if (!ubicacion) {
+        alert('Selecciona una ubicación antes de hacer el pedido.');
+        return;
+      }
 
       if (items.length === 0) {
         alert('La lista está vacía. Añade productos antes de hacer el pedido.');
@@ -137,11 +156,13 @@
 
       const { week, year } = isoWeekYear();
       const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      pedidos.push({ productos: items, semana: week, anio: year });
+      pedidos.push({ productos: items, semana: week, anio: year, ubicacion });
       localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
       lista.innerHTML = '';
+      document.getElementById('ubicacion').selectedIndex = 0;
       alert('Pedido realizado correctamente.');
+      mostrarPedidos();
     }
 
     function isoWeekYear(date = new Date()) {
@@ -152,6 +173,23 @@
       const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
       const year = d.getUTCFullYear();
       return { week, year };
+    }
+
+    function mostrarPedidos() {
+      const lista = document.getElementById('listaPedidos');
+      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
+      lista.innerHTML = '';
+
+      pedidos.forEach((pedido, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>Pedido ${index + 1}</strong><br>
+          <em>Ubicación:</em> ${pedido.ubicacion}<br>
+          <em>Semana:</em> ${pedido.semana}, <em>Año:</em> ${pedido.anio}<br>
+          <em>Productos:</em> ${pedido.productos.join(', ')}
+        `;
+        lista.appendChild(li);
+      });
     }
 
     document.getElementById('productos').addEventListener('change', function () {
@@ -171,6 +209,7 @@
     });
 
     cargarProductos();
+    mostrarPedidos();
   </script>
 </body>
 </html>
