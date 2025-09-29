@@ -45,8 +45,9 @@
     }
     li {
       display: flex;
-      flex-direction: column;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
     }
     .remove-btn {
       background-color: #e74c3c;
@@ -55,8 +56,7 @@
       color: white;
       padding: 5px 10px;
       cursor: pointer;
-      align-self: flex-start;
-      margin-top: 5px;
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -76,22 +76,18 @@
   </div>
 
   <div class="card">
-    <h2>Productos seleccionados</h2>
-    <ul id="listaProductos"></ul>
-
     <h2>Ubicación del solicitante</h2>
     <select id="ubicacion">
       <option value="" disabled selected>Selecciona ubicación…</option>
       <option value="Almería">Almería</option>
       <option value="Águilas">Águilas</option>
     </select>
-
-    <button onclick="hacerPedido()">Hacer pedido</button>
   </div>
 
   <div class="card">
-    <h2>Pedidos registrados</h2>
-    <ul id="listaPedidos"></ul>
+    <h2>Productos seleccionados</h2>
+    <ul id="listaProductos"></ul>
+    <button onclick="hacerPedido()">Hacer pedido</button>
   </div>
 
   <script>
@@ -162,7 +158,6 @@
       lista.innerHTML = '';
       document.getElementById('ubicacion').selectedIndex = 0;
       alert('Pedido realizado correctamente.');
-      mostrarPedidos();
     }
 
     function isoWeekYear(date = new Date()) {
@@ -175,41 +170,6 @@
       return { week, year };
     }
 
-    function mostrarPedidos() {
-      const lista = document.getElementById('listaPedidos');
-      const pedidos = JSON.parse(localStorage.getItem('pedidos') || '[]');
-      lista.innerHTML = '';
-
-      pedidos.forEach((pedido, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <strong>Pedido ${index + 1}</strong><br>
-          <em>Ubicación:</em> ${pedido.ubicacion}<br>
-          <em>Semana:</em> ${pedido.semana}, <em>Año:</em> ${pedido.anio}<br>
-          <em>Productos:</em> ${pedido.productos.join(', ')}
-        `;
-        lista.appendChild(li);
-      });
-    }
-
     document.getElementById('productos').addEventListener('change', function () {
       const value = this.value;
       if (value) {
-        agregarALista(value);
-        this.selectedIndex = 0;
-      }
-    });
-
-    document.getElementById('buscador').addEventListener('input', function () {
-      const filtro = this.value.toLowerCase();
-      const filtrados = window.productosOriginales.filter(p =>
-        `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro)
-      );
-      actualizarSelect(filtrados);
-    });
-
-    cargarProductos();
-    mostrarPedidos();
-  </script>
-</body>
-</html>
