@@ -28,6 +28,7 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       background-color: #ffffff;
+      box-sizing: border-box;
     }
     button {
       background-color: #004832;
@@ -39,28 +40,41 @@
       cursor: pointer;
       margin-top: 10px;
     }
+    button:hover {
+      background-color: #006644;
+    }
     button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
     }
     ul {
-      list-style-type: disc;
-      padding-left: 20px;
+      list-style-type: none;
+      padding-left: 0;
     }
     li {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+    }
+    li span {
+      flex: 1;
     }
     .remove-btn {
       background-color: #e74c3c;
       border: none;
       border-radius: 999px;
       color: white;
-      padding: 5px 10px;
+      padding: 5px 15px;
       cursor: pointer;
       margin-left: 10px;
+      font-size: 12px;
+    }
+    .remove-btn:hover {
+      background-color: #c0392b;
     }
     .error-msg {
       color: #e74c3c;
@@ -68,27 +82,23 @@
       margin-top: 5px;
       display: none;
     }
-    .config-info {
-      background-color: #fff3cd;
-      border: 1px solid #ffc107;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    .config-info input {
-      font-family: monospace;
-      font-size: 12px;
-    }
     .loading {
       display: none;
       color: #004832;
       font-weight: bold;
       margin-top: 10px;
     }
+    .empty-list {
+      color: #999;
+      font-style: italic;
+      padding: 10px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <h1>Usuario — Laboratorio</h1>
+  
   <div class="card">
     <h2>Ubicación del solicitante</h2>
     <select id="ubicacion">
@@ -102,7 +112,10 @@
   <div class="card">
     <h2>Buscar producto</h2>
     <input type="text" id="buscador" placeholder="Filtrar por nombre o código..." />
-    <select id="productos"></select>
+    <select id="productos" size="1">
+      <option value="" disabled selected>Cargando productos...</option>
+    </select>
+    <button onclick="agregarDesdeSelector()">Añadir producto seleccionado</button>
   </div>
 
   <div class="card">
@@ -113,50 +126,32 @@
 
   <div class="card">
     <h2>Productos seleccionados</h2>
-    <ul id="listaProductos"></ul>
+    <ul id="listaProductos">
+      <li class="empty-list">No hay productos agregados aún</li>
+    </ul>
     <button id="btnPedido" onclick="hacerPedido()">Hacer pedido</button>
     <div class="loading" id="loading">⏳ Enviando pedido...</div>
   </div>
 
   <script>
+    // Configuración fija (reemplaza con tus credenciales reales)
     const config = {
-  binId: '68da40ae43b1c97be953d923',  // Tu BIN ID real
-  apiKey: '$2a$10$VZkBpuqFtVLZ/C87sZgOJOQ7aUrsIzg/5iPCADeprIFQfvPjxUt5C'  // Tu API KEY real
-};
-    const CONFIG_KEY = 'jsonbin_config';
-    let config = null;
+      binId: '68da40ae43b1c97be953d923',
+      apiKey: '$2a$10$VZkBpuqFtVLZ/C87sZgOJOQ7aUrsIzg/5iPCADeprIFQfvPjxUt5C'
+    };
 
-    function cargarConfiguracion() {
-      const stored = localStorage.getItem(CONFIG_KEY);
-      if (stored) {
-        config = JSON.parse(stored);
-        document.getElementById('binId').value = config.binId;
-        document.getElementById('apiKey').value = config.apiKey;
-      }
-    }
-
-    function guardarConfig() {
-      const binId = document.getElementById('binId').value.trim();
-      const apiKey = document.getElementById('apiKey').value.trim();
-      
-      if (!binId || !apiKey) {
-        alert('Por favor completa ambos campos');
-        return;
-      }
-      
-      config = { binId, apiKey };
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-      alert('✅ Configuración guardada correctamente');
-    }
+    let productosOriginales = [];
 
     async function cargarProductos() {
       try {
         const res = await fetch('productos_usuario_limpio.json');
         const data = await res.json();
-        window.productosOriginales = data;
+        productosOriginales = data;
         actualizarSelect(data);
       } catch (err) {
         console.error('Error al cargar productos:', err);
+        const select = document.getElementById('productos');
+        select.innerHTML = '<option value="">Error al cargar productos</option>';
       }
     }
 
@@ -173,16 +168,43 @@
 
     function agregarALista(texto) {
       const ul = document.getElementById('listaProductos');
-      const li = document.createElement('li');
-      li.textContent = texto;
+      
+      // Eliminar mensaje de lista vacía si existe
+      const emptyMsg = ul.querySelector('.empty-list');
+      if (emptyMsg) {
+        emptyMsg.remove();
+      }
 
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = texto;
+      
       const btn = document.createElement('button');
       btn.textContent = 'Eliminar';
       btn.className = 'remove-btn';
-      btn.onclick = () => li.remove();
+      btn.onclick = () => {
+        li.remove();
+        // Si no quedan productos, mostrar mensaje
+        if (ul.children.length === 0) {
+          ul.innerHTML = '<li class="empty-list">No hay productos agregados aún</li>';
+        }
+      };
 
+      li.appendChild(span);
       li.appendChild(btn);
       ul.appendChild(li);
+    }
+
+    function agregarDesdeSelector() {
+      const select = document.getElementById('productos');
+      const value = select.value;
+      
+      if (value && value !== '') {
+        agregarALista(value);
+        select.selectedIndex = 0; // Resetear selector
+      } else {
+        alert('Por favor, selecciona un producto primero');
+      }
     }
 
     function agregarDesdeManual() {
@@ -190,18 +212,16 @@
       if (texto) {
         agregarALista(texto);
         document.getElementById('manualInput').value = '';
+      } else {
+        alert('Por favor, escribe algo antes de añadir');
       }
     }
 
     async function hacerPedido() {
-      if (!config || !config.binId || !config.apiKey) {
-        alert('⚠️ Por favor configura primero el sistema con tu BIN ID y API KEY');
-        return;
-      }
-
       const ubicacion = document.getElementById('ubicacion').value;
       const errorMsg = document.getElementById('errorUbicacion');
       
+      // Validar ubicación
       if (!ubicacion) {
         errorMsg.style.display = 'block';
         document.getElementById('ubicacion').style.borderColor = '#e74c3c';
@@ -212,7 +232,10 @@
       document.getElementById('ubicacion').style.borderColor = '#ccc';
 
       const lista = document.getElementById('listaProductos');
-      const items = Array.from(lista.querySelectorAll('li')).map(li => li.firstChild.textContent);
+      const items = Array.from(lista.querySelectorAll('li:not(.empty-list)')).map(li => {
+        const span = li.querySelector('span');
+        return span ? span.textContent : '';
+      }).filter(text => text !== '');
 
       if (items.length === 0) {
         alert('La lista está vacía. Añade productos antes de hacer el pedido.');
@@ -225,7 +248,8 @@
         semana: week, 
         anio: year,
         ubicacion: ubicacion,
-        fecha: new Date().toISOString()
+        fecha: new Date().toISOString(),
+        timestamp: Date.now()
       };
 
       // Mostrar loading
@@ -260,14 +284,14 @@
         });
 
         if (updateResponse.ok) {
-          lista.innerHTML = '';
-          alert(`✅ Pedido realizado correctamente para ${ubicacion}.`);
+          lista.innerHTML = '<li class="empty-list">No hay productos agregados aún</li>';
+          alert(`✅ Pedido realizado correctamente para ${ubicacion}.\n\nSemana: ${week}/${year}\nProductos: ${items.length}`);
         } else {
           throw new Error('Error al guardar el pedido');
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('❌ Error al enviar el pedido. Verifica tu configuración.');
+        alert('❌ Error al enviar el pedido. Por favor, inténtalo de nuevo.');
       } finally {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('btnPedido').disabled = false;
@@ -284,23 +308,16 @@
       return { week, year };
     }
 
-    document.getElementById('productos').addEventListener('change', function () {
-      const value = this.value;
-      if (value) {
-        agregarALista(value);
-        this.selectedIndex = 0;
-      }
-    });
-
+    // Event listener para el buscador
     document.getElementById('buscador').addEventListener('input', function () {
       const filtro = this.value.toLowerCase();
-      const filtrados = window.productosOriginales.filter(p =>
+      const filtrados = productosOriginales.filter(p =>
         `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro)
       );
       actualizarSelect(filtrados);
     });
 
-    cargarConfiguracion();
+    // Cargar productos al iniciar
     cargarProductos();
   </script>
 </body>
