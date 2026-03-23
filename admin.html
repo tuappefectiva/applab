@@ -163,7 +163,7 @@
       try {
         const response = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
           headers: {
-            'X-Access-Key': config.apiKey
+            'X-Master-Key': config.apiKey
           }
         });
 
@@ -234,7 +234,7 @@
       try {
         const response = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
           headers: {
-            'X-Access-Key': config.apiKey
+            'X-Master-Key': config.apiKey
           }
         });
 
@@ -246,7 +246,7 @@
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Access-Key': config.apiKey
+           'X-Master-Key': config.apiKey
           },
           body: JSON.stringify({ pedidos })
         });
@@ -272,7 +272,7 @@
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Access-Key': config.apiKey
+            'X-Master-Key': config.apiKey
           },
           body: JSON.stringify({ pedidos: [] })
         });
