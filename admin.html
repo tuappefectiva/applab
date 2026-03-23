@@ -42,8 +42,10 @@ let config = null;
 function cargarConfiguracion() {
   const stored = localStorage.getItem(CONFIG_KEY);
   if (stored) {
+  try {
     config = JSON.parse(stored);
-    document.getElementById('configPanel').style.display = 'none';
+  } catch {
+    localStorage.removeItem(CONFIG_KEY);
   }
 }
 
