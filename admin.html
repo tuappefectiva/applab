@@ -3,18 +3,45 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Administración — Pedidos</title>
+<title>Admin — Pedidos</title>
 
 <style>
-body { font-family: Arial; background:#f4f4f4; padding:20px; }
+body {
+  font-family: Arial;
+  background:#f4f4f4;
+  padding:20px;
+}
 h1 { color:#004832; }
-.pedido { background:#fff; border-left:5px solid #004832; padding:15px; margin-bottom:15px; border-radius:8px; }
-.ubicacion { background:#b9e6b9; padding:4px 10px; border-radius:999px; margin-left:10px; }
-.btn { background:#004832; color:#fff; border:none; border-radius:999px; padding:10px 20px; cursor:pointer; margin-right:10px; }
-.btn-eliminar { background:#e74c3c; }
-.config { background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:20px; }
-input { width:100%; padding:10px; margin-top:10px; }
-.loading { font-weight:bold; }
+
+.config {
+  background:#fff3cd;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+}
+
+button {
+  background:#004832;
+  color:white;
+  border:none;
+  padding:10px 20px;
+  border-radius:999px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+.pedido {
+  background:white;
+  padding:15px;
+  margin-bottom:10px;
+  border-left:5px solid #004832;
+}
 </style>
 </head>
 
@@ -22,99 +49,101 @@ input { width:100%; padding:10px; margin-top:10px; }
 
 <h1>Pedidos realizados</h1>
 
-<div class="config" id="configPanel">
+<div class="config">
   <h3>Configuración</h3>
   <input id="binId" placeholder="BIN ID">
   <input id="apiKey" placeholder="API KEY">
-  <button class="btn" onclick="guardarConfig()">Guardar</button>
+  <button onclick="guardar()">Guardar</button>
 </div>
 
-<button class="btn" onclick="cargarPedidos()">Actualizar</button>
-<button class="btn" onclick="limpiarTodo()">Limpiar todo</button>
+<button onclick="cargar()">Actualizar</button>
+<button onclick="limpiar()">Limpiar todo</button>
 
-<div id="zonaPedidos"></div>
+<div id="zona"></div>
 
 <script>
-
-const CONFIG_KEY = 'jsonbin_config';
 let config = null;
 
-function cargarConfiguracion() {
-  const stored = localStorage.getItem(CONFIG_KEY);
-  if (stored) {
-  try {
-    config = JSON.parse(stored);
-  } catch {
-    localStorage.removeItem(CONFIG_KEY);
-  }
-}
-
-function guardarConfig() {
+function guardar() {
   const binId = document.getElementById('binId').value.trim();
   const apiKey = document.getElementById('apiKey').value.trim();
 
   if (!binId || !apiKey) {
-    alert("Completa ambos campos");
+    alert("Completa los datos");
     return;
   }
 
   config = { binId, apiKey };
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); // ✅ CORREGIDO
 
-  document.getElementById('configPanel').style.display = 'none';
-  cargarPedidos();
+  // ✅ CORREGIDO
+  localStorage.setItem("jsonbin_config", JSON.stringify(config));
+
+  alert("Guardado correctamente");
+
+  cargar();
 }
 
-async function cargarPedidos() {
-  if (!config) return;
+function cargarConfig() {
+  const data = localStorage.getItem("jsonbin_config");
+  if (data) {
+    config = JSON.parse(data);
+    document.getElementById('binId').value = config.binId;
+    document.getElementById('apiKey').value = config.apiKey;
+  }
+}
 
-  const zona = document.getElementById('zonaPedidos');
-  zona.innerHTML = '<div class="loading">Cargando...</div>';
+async function cargar() {
+  if (!config) {
+    alert("Configura primero");
+    return;
+  }
+
+  const zona = document.getElementById('zona');
+  zona.innerHTML = "Cargando...";
 
   try {
     const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-      headers: { 'X-Master-Key': config.apiKey }
+      headers: {
+        "X-Master-Key": config.apiKey
+      }
     });
 
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status);
-    }
+    if (!res.ok) throw new Error(res.status);
 
     const data = await res.json();
+    const pedidos = data.record?.pedidos || [];
 
-    // ✅ Protección extra
-    const pedidos = (data.record && data.record.pedidos) ? data.record.pedidos : [];
-
-    zona.innerHTML = '';
+    zona.innerHTML = "";
 
     if (pedidos.length === 0) {
-      zona.innerHTML = '<p>No hay pedidos</p>';
+      zona.innerHTML = "Sin pedidos";
       return;
     }
 
     pedidos.forEach((p, i) => {
-      const div = document.createElement('div');
-      div.className = 'pedido';
+      const div = document.createElement("div");
+      div.className = "pedido";
 
       div.innerHTML = `
-        <h3>Pedido ${i+1} ${p.ubicacion ? `<span class="ubicacion">${p.ubicacion}</span>`:''}</h3>
-        <small>${p.fecha || ''}</small>
-        <ul>${p.productos.map(x => `<li>${x}</li>`).join('')}</ul>
-        <button class="btn btn-eliminar" onclick="eliminar(${i})">Eliminar</button>
+        <b>Pedido ${i+1}</b><br>
+        ${p.ubicacion} <br>
+        ${p.productos.join("<br>")}
+        <br><br>
+        <button onclick="eliminar(${i})">Eliminar</button>
       `;
 
       zona.appendChild(div);
     });
 
   } catch (e) {
-    zona.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
     console.error(e);
+    zona.innerHTML = "❌ Error (revisa BIN y API KEY)";
   }
 }
 
 async function eliminar(index) {
   const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-    headers: { 'X-Master-Key': config.apiKey }
+    headers: { "X-Master-Key": config.apiKey }
   });
 
   const data = await res.json();
@@ -123,33 +152,32 @@ async function eliminar(index) {
   pedidos.splice(index, 1);
 
   await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
-      'X-Master-Key': config.apiKey
+      "Content-Type": "application/json",
+      "X-Master-Key": config.apiKey
     },
     body: JSON.stringify({ pedidos })
   });
 
-  cargarPedidos();
+  cargar();
 }
 
-async function limpiarTodo() {
+async function limpiar() {
   await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
-      'X-Master-Key': config.apiKey
+      "Content-Type": "application/json",
+      "X-Master-Key": config.apiKey
     },
     body: JSON.stringify({ pedidos: [] })
   });
 
-  cargarPedidos();
+  cargar();
 }
 
-cargarConfiguracion();
-if (config) cargarPedidos();
-
+cargarConfig();
+if (config) cargar();
 </script>
 
 </body>
