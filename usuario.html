@@ -1,139 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Usuario — Laboratorio</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #b9e6b9;
-      color: #004832;
-      padding: 20px;
-    }
-    h1, h2 {
-      color: #004832;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,72,50,.25);
-    }
-    select, textarea, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background-color: #ffffff;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #004832;
-      color: #ffffff;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 20px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background-color: #006644;
-    }
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
-    ul {
-      list-style-type: none;
-      padding-left: 0;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 10px;
-      background-color: #f8f9fa;
-      border-radius: 6px;
-    }
-    li span {
-      flex: 1;
-    }
-    .remove-btn {
-      background-color: #e74c3c;
-      border: none;
-      border-radius: 999px;
-      color: white;
-      padding: 5px 15px;
-      cursor: pointer;
-      margin-left: 10px;
-      font-size: 12px;
-    }
-    .remove-btn:hover {
-      background-color: #c0392b;
-    }
-    .error-msg {
-      color: #e74c3c;
-      font-size: 14px;
-      margin-top: 5px;
-      display: none;
-    }
-    .loading {
-      display: none;
-      color: #004832;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    .empty-list {
-      color: #999;
-      font-style: italic;
-      padding: 10px;
-      text-align: center;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Usuario — Laboratorio</title>
+
+<style>
+body { font-family: Arial; background:#b9e6b9; padding:20px; }
+.card { background:#fff; border-radius:10px; padding:15px; margin-bottom:20px; }
+button { background:#004832; color:#fff; border:none; border-radius:999px; padding:10px 20px; cursor:pointer; }
+.remove-btn { background:#e74c3c; margin-left:10px; }
+.empty-list { color:#999; text-align:center; }
+.loading { display:none; font-weight:bold; }
+</style>
 </head>
+
 <body>
-  <h1>Usuario — Laboratorio</h1>
-  
-  <div class="card">
-    <h2>Ubicación del solicitante</h2>
-    <select id="ubicacion">
-      <option value="" disabled selected>Selecciona tu ubicación...</option>
-      <option value="Almería">Almería</option>
-      <option value="Águilas">Águilas</option>
-    </select>
-    <div class="error-msg" id="errorUbicacion">Por favor, selecciona una ubicación antes de hacer el pedido.</div>
-  </div>
 
-  <div class="card">
-    <h2>Buscar producto</h2>
-    <input type="text" id="buscador" placeholder="Filtrar por nombre o código..." />
-    <select id="productos" size="1">
-      <option value="" disabled selected>Cargando productos...</option>
-    </select>
-    <button onclick="agregarDesdeSelector()">Añadir producto seleccionado</button>
-  </div>
+<h1>Usuario — Laboratorio</h1>
 
-  <div class="card">
-    <h2>Agregar productos manualmente</h2>
-    <textarea id="manualInput" rows="4" placeholder="Escribe productos manuales aquí..."></textarea>
-    <button onclick="agregarDesdeManual()">Añadir a la lista</button>
-  </div>
+<div class="card">
+<select id="ubicacion">
+<option value="" disabled selected>Selecciona ubicación</option>
+<option>Almería</option>
+<option>Águilas</option>
+</select>
+</div>
 
-  <div class="card">
-    <h2>Productos seleccionados</h2>
-    <ul id="listaProductos">
-      <li class="empty-list">No hay productos agregados aún</li>
-    </ul>
-    <button id="btnPedido" onclick="hacerPedido()">Hacer pedido</button>
-    <div class="loading" id="loading">⏳ Enviando pedido...</div>
-  </div>
+<div class="card">
+<input id="buscador" placeholder="Buscar..." />
+<select id="productos"></select>
+<button onclick="agregarDesdeSelector()">Añadir</button>
+</div>
+
+<div class="card">
+<textarea id="manualInput" placeholder="Manual"></textarea>
+<button onclick="agregarDesdeManual()">Añadir manual</button>
+</div>
+
+<div class="card">
+<ul id="listaProductos">
+<li class="empty-list">No hay productos</li>
+</ul>
+<button id="btnPedido" onclick="hacerPedido()">Enviar pedido</button>
+<div class="loading" id="loading">Enviando...</div>
+</div>
 
 <script>
+
 const config = {
   binId: '69c109d4c3097a1dd54f2a17',
   apiKey: '$2a$10$pQZ95V9v7uzCApZinQK1duBWYbs0K5CA01FfBphmSnlHapcrOU6x.'
@@ -147,41 +61,40 @@ async function cargarProductos() {
     const data = await res.json();
     productosOriginales = data;
     actualizarSelect(data);
-  } catch (err) {
-    console.error('Error al cargar productos:', err);
-    document.getElementById('productos').innerHTML =
-      '<option>Error al cargar productos</option>';
+  } catch {
+    document.getElementById('productos').innerHTML = '<option>Error</option>';
   }
 }
 
 function actualizarSelect(productos) {
   const select = document.getElementById('productos');
-  select.innerHTML = '<option disabled selected>Selecciona un producto…</option>';
+  select.innerHTML = '<option disabled selected>Selecciona</option>';
   productos.forEach(p => {
-    const option = document.createElement('option');
-    option.value = `${p.nombre} (${p.codigo})`;
-    option.textContent = option.value;
-    select.appendChild(option);
+    const text = `${p.nombre} (${p.codigo})`;
+    const opt = document.createElement('option');
+    opt.value = text;
+    opt.textContent = text;
+    select.appendChild(opt);
   });
 }
 
 function agregarALista(texto) {
   const ul = document.getElementById('listaProductos');
-
   const empty = ul.querySelector('.empty-list');
   if (empty) empty.remove();
 
   const li = document.createElement('li');
+
   const span = document.createElement('span');
   span.textContent = texto;
 
   const btn = document.createElement('button');
-  btn.textContent = 'Eliminar';
+  btn.textContent = 'X';
   btn.className = 'remove-btn';
   btn.onclick = () => {
     li.remove();
     if (ul.children.length === 0) {
-      ul.innerHTML = '<li class="empty-list">No hay productos agregados aún</li>';
+      ul.innerHTML = '<li class="empty-list">No hay productos</li>';
     }
   };
 
@@ -191,34 +104,30 @@ function agregarALista(texto) {
 }
 
 function agregarDesdeSelector() {
-  const value = document.getElementById('productos').value;
-  if (!value) return alert('Selecciona un producto');
-  agregarALista(value);
+  const val = document.getElementById('productos').value;
+  if (!val) return alert('Selecciona producto');
+  agregarALista(val);
 }
 
 function agregarDesdeManual() {
-  const texto = document.getElementById('manualInput').value.trim();
-  if (!texto) return alert('Escribe algo');
-  agregarALista(texto);
+  const val = document.getElementById('manualInput').value.trim();
+  if (!val) return alert('Escribe algo');
+  agregarALista(val);
   document.getElementById('manualInput').value = '';
 }
 
 async function hacerPedido() {
+
   const ubicacion = document.getElementById('ubicacion').value;
   if (!ubicacion) return alert('Selecciona ubicación');
 
-  const items = Array.from(
-    document.querySelectorAll('#listaProductos li:not(.empty-list)')
-  ).map(li => li.innerText.replace('Eliminar', '').trim());
+  const items = Array.from(document.querySelectorAll('#listaProductos li span'))
+    .map(x => x.textContent);
 
-  if (items.length === 0) return alert('Añade productos');
+  if (items.length === 0) return alert('Lista vacía');
 
-  const { week, year } = isoWeekYear();
-
-  const nuevoPedido = {
+  const pedido = {
     productos: items,
-    semana: week,
-    anio: year,
     ubicacion,
     fecha: new Date().toISOString()
   };
@@ -227,29 +136,23 @@ async function hacerPedido() {
   document.getElementById('btnPedido').disabled = true;
 
   try {
-    // 🔹 Leer bin
+
     const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-      headers: {
-        'X-Master-Key': config.apiKey
-      }
+      headers: { 'X-Master-Key': config.apiKey }
     });
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
 
-    if (!data.record) {
-      throw new Error('Formato inválido en JSONBin');
+    let pedidos = [];
+    if (data.record && Array.isArray(data.record.pedidos)) {
+      pedidos = data.record.pedidos;
     }
 
-    let pedidos = data.record.pedidos || [];
+    pedidos.push(pedido);
 
-    pedidos.push(nuevoPedido);
-
-    // 🔹 Guardar
-    const update = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+    const save = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -258,41 +161,28 @@ async function hacerPedido() {
       body: JSON.stringify({ pedidos })
     });
 
-    if (!update.ok) {
-      throw new Error(`Error al guardar (${update.status})`);
-    }
+    if (!save.ok) throw new Error(`SAVE ${save.status}`);
 
     document.getElementById('listaProductos').innerHTML =
-      '<li class="empty-list">No hay productos agregados aún</li>';
+      '<li class="empty-list">No hay productos</li>';
 
-    alert('✅ Pedido enviado correctamente');
+    alert('✅ Pedido enviado');
 
-  } catch (error) {
-    console.error(error);
+  } catch (e) {
 
-    let msg = '❌ Error al enviar pedido';
+    console.error(e);
 
-    if (error.message.includes('404')) {
-      msg = '❌ BIN ID no existe';
-    } else if (error.message.includes('401')) {
-      msg = '❌ API KEY incorrecta';
-    }
+    let msg = 'Error';
 
-    alert(msg);
+    if (e.message.includes('404')) msg = 'BIN no existe';
+    if (e.message.includes('401')) msg = 'API KEY incorrecta';
+
+    alert('❌ ' + msg);
 
   } finally {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('btnPedido').disabled = false;
   }
-}
-
-function isoWeekYear(date = new Date()) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return { week, year: d.getUTCFullYear() };
 }
 
 document.getElementById('buscador').addEventListener('input', function () {
@@ -303,4 +193,8 @@ document.getElementById('buscador').addEventListener('input', function () {
 });
 
 cargarProductos();
+
 </script>
+
+</body>
+</html>
