@@ -133,192 +133,174 @@
     <div class="loading" id="loading">⏳ Enviando pedido...</div>
   </div>
 
-  <script>
-    // Configuración fija (reemplaza con tus credenciales reales)
-    const config = {
-      binId: '69c109d4c3097a1dd54f2a17',
-      apiKey: '$2a$10$pQZ95V9v7uzCApZinQK1duBWYbs0K5CA01FfBphmSnlHapcrOU6x.'
-    };
+<script>
+const config = {
+  binId: '69c109d4c3097a1dd54f2a17',
+  apiKey: '$2a$10$pQZ95V9v7uzCApZinQK1duBWYbs0K5CA01FfBphmSnlHapcrOU6x.'
+};
 
-    let productosOriginales = [];
+let productosOriginales = [];
 
-    async function cargarProductos() {
-      try {
-        const res = await fetch('productos_usuario_limpio.json');
-        const data = await res.json();
-        productosOriginales = data;
-        actualizarSelect(data);
-      } catch (err) {
-        console.error('Error al cargar productos:', err);
-        const select = document.getElementById('productos');
-        select.innerHTML = '<option value="">Error al cargar productos</option>';
-      }
+async function cargarProductos() {
+  try {
+    const res = await fetch('productos_usuario_limpio.json');
+    const data = await res.json();
+    productosOriginales = data;
+    actualizarSelect(data);
+  } catch (err) {
+    console.error('Error al cargar productos:', err);
+    document.getElementById('productos').innerHTML =
+      '<option>Error al cargar productos</option>';
+  }
+}
+
+function actualizarSelect(productos) {
+  const select = document.getElementById('productos');
+  select.innerHTML = '<option disabled selected>Selecciona un producto…</option>';
+  productos.forEach(p => {
+    const option = document.createElement('option');
+    option.value = `${p.nombre} (${p.codigo})`;
+    option.textContent = option.value;
+    select.appendChild(option);
+  });
+}
+
+function agregarALista(texto) {
+  const ul = document.getElementById('listaProductos');
+
+  const empty = ul.querySelector('.empty-list');
+  if (empty) empty.remove();
+
+  const li = document.createElement('li');
+  const span = document.createElement('span');
+  span.textContent = texto;
+
+  const btn = document.createElement('button');
+  btn.textContent = 'Eliminar';
+  btn.className = 'remove-btn';
+  btn.onclick = () => {
+    li.remove();
+    if (ul.children.length === 0) {
+      ul.innerHTML = '<li class="empty-list">No hay productos agregados aún</li>';
     }
+  };
 
-    function actualizarSelect(productos) {
-      const select = document.getElementById('productos');
-      select.innerHTML = '<option value="" disabled selected>Selecciona un producto…</option>';
-      productos.forEach(p => {
-        const option = document.createElement('option');
-        option.value = `${p.nombre} (${p.codigo})`;
-        option.textContent = `${p.nombre} (${p.codigo})`;
-        select.appendChild(option);
-      });
-    }
+  li.appendChild(span);
+  li.appendChild(btn);
+  ul.appendChild(li);
+}
 
-    function agregarALista(texto) {
-      const ul = document.getElementById('listaProductos');
-      
-      // Eliminar mensaje de lista vacía si existe
-      const emptyMsg = ul.querySelector('.empty-list');
-      if (emptyMsg) {
-        emptyMsg.remove();
+function agregarDesdeSelector() {
+  const value = document.getElementById('productos').value;
+  if (!value) return alert('Selecciona un producto');
+  agregarALista(value);
+}
+
+function agregarDesdeManual() {
+  const texto = document.getElementById('manualInput').value.trim();
+  if (!texto) return alert('Escribe algo');
+  agregarALista(texto);
+  document.getElementById('manualInput').value = '';
+}
+
+async function hacerPedido() {
+  const ubicacion = document.getElementById('ubicacion').value;
+  if (!ubicacion) return alert('Selecciona ubicación');
+
+  const items = Array.from(
+    document.querySelectorAll('#listaProductos li:not(.empty-list)')
+  ).map(li => li.innerText.replace('Eliminar', '').trim());
+
+  if (items.length === 0) return alert('Añade productos');
+
+  const { week, year } = isoWeekYear();
+
+  const nuevoPedido = {
+    productos: items,
+    semana: week,
+    anio: year,
+    ubicacion,
+    fecha: new Date().toISOString()
+  };
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('btnPedido').disabled = true;
+
+  try {
+    // 🔹 Leer bin
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
+      headers: {
+        'X-Master-Key': config.apiKey
       }
-
-      const li = document.createElement('li');
-      const span = document.createElement('span');
-      span.textContent = texto;
-      
-      const btn = document.createElement('button');
-      btn.textContent = 'Eliminar';
-      btn.className = 'remove-btn';
-      btn.onclick = () => {
-        li.remove();
-        // Si no quedan productos, mostrar mensaje
-        if (ul.children.length === 0) {
-          ul.innerHTML = '<li class="empty-list">No hay productos agregados aún</li>';
-        }
-      };
-
-      li.appendChild(span);
-      li.appendChild(btn);
-      ul.appendChild(li);
-    }
-
-    function agregarDesdeSelector() {
-      const select = document.getElementById('productos');
-      const value = select.value;
-      
-      if (value && value !== '') {
-        agregarALista(value);
-        select.selectedIndex = 0; // Resetear selector
-      } else {
-        alert('Por favor, selecciona un producto primero');
-      }
-    }
-
-    function agregarDesdeManual() {
-      const texto = document.getElementById('manualInput').value.trim();
-      if (texto) {
-        agregarALista(texto);
-        document.getElementById('manualInput').value = '';
-      } else {
-        alert('Por favor, escribe algo antes de añadir');
-      }
-    }
-
-    async function hacerPedido() {
-      const ubicacion = document.getElementById('ubicacion').value;
-      const errorMsg = document.getElementById('errorUbicacion');
-      
-      // Validar ubicación
-      if (!ubicacion) {
-        errorMsg.style.display = 'block';
-        document.getElementById('ubicacion').style.borderColor = '#e74c3c';
-        return;
-      }
-      
-      errorMsg.style.display = 'none';
-      document.getElementById('ubicacion').style.borderColor = '#ccc';
-
-      const lista = document.getElementById('listaProductos');
-      const items = Array.from(lista.querySelectorAll('li:not(.empty-list)')).map(li => {
-        const span = li.querySelector('span');
-        return span ? span.textContent : '';
-      }).filter(text => text !== '');
-
-      if (items.length === 0) {
-        alert('La lista está vacía. Añade productos antes de hacer el pedido.');
-        return;
-      }
-
-      const { week, year } = isoWeekYear();
-      const nuevoPedido = { 
-        productos: items, 
-        semana: week, 
-        anio: year,
-        ubicacion: ubicacion,
-        fecha: new Date().toISOString(),
-        timestamp: Date.now()
-      };
-
-      // Mostrar loading
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('btnPedido').disabled = true;
-
-      try {
-        // Obtener pedidos existentes
-        const response = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-          headers: {
-           'X-Master-Key': config.apiKey
-          }
-        });
-
-        let pedidos = [];
-        if (response.ok) {
-          const data = await response.json();
-          pedidos = data.record.pedidos || [];
-        }
-
-        // Agregar nuevo pedido
-        pedidos.push(nuevoPedido);
-
-        // Guardar en JSONBin
-        const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': config.apiKey
-          },
-          body: JSON.stringify({ pedidos })
-        });
-
-        if (updateResponse.ok) {
-          lista.innerHTML = '<li class="empty-list">No hay productos agregados aún</li>';
-          alert(`✅ Pedido realizado correctamente para ${ubicacion}.\n\nSemana: ${week}/${year}\nProductos: ${items.length}`);
-        } else {
-          throw new Error('Error al guardar el pedido');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error al enviar el pedido. Por favor, inténtalo de nuevo.');
-      } finally {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('btnPedido').disabled = false;
-      }
-    }
-
-    function isoWeekYear(date = new Date()) {
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-      const year = d.getUTCFullYear();
-      return { week, year };
-    }
-
-    // Event listener para el buscador
-    document.getElementById('buscador').addEventListener('input', function () {
-      const filtro = this.value.toLowerCase();
-      const filtrados = productosOriginales.filter(p =>
-        `${p.nombre} (${p.codigo})`.toLowerCase().includes(filtro)
-      );
-      actualizarSelect(filtrados);
     });
 
-    // Cargar productos al iniciar
-    cargarProductos();
-  </script>
-</body>
-</html>
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (!data.record) {
+      throw new Error('Formato inválido en JSONBin');
+    }
+
+    let pedidos = data.record.pedidos || [];
+
+    pedidos.push(nuevoPedido);
+
+    // 🔹 Guardar
+    const update = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': config.apiKey
+      },
+      body: JSON.stringify({ pedidos })
+    });
+
+    if (!update.ok) {
+      throw new Error(`Error al guardar (${update.status})`);
+    }
+
+    document.getElementById('listaProductos').innerHTML =
+      '<li class="empty-list">No hay productos agregados aún</li>';
+
+    alert('✅ Pedido enviado correctamente');
+
+  } catch (error) {
+    console.error(error);
+
+    let msg = '❌ Error al enviar pedido';
+
+    if (error.message.includes('404')) {
+      msg = '❌ BIN ID no existe';
+    } else if (error.message.includes('401')) {
+      msg = '❌ API KEY incorrecta';
+    }
+
+    alert(msg);
+
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('btnPedido').disabled = false;
+  }
+}
+
+function isoWeekYear(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return { week, year: d.getUTCFullYear() };
+}
+
+document.getElementById('buscador').addEventListener('input', function () {
+  const f = this.value.toLowerCase();
+  actualizarSelect(productosOriginales.filter(p =>
+    `${p.nombre} (${p.codigo})`.toLowerCase().includes(f)
+  ));
+});
+
+cargarProductos();
+</script>
