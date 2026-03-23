@@ -69,6 +69,7 @@ async function cargarProductos() {
 function actualizarSelect(productos) {
   const select = document.getElementById('productos');
   select.innerHTML = '<option disabled selected>Selecciona</option>';
+
   productos.forEach(p => {
     const text = `${p.nombre} (${p.codigo})`;
     const opt = document.createElement('option');
@@ -80,6 +81,7 @@ function actualizarSelect(productos) {
 
 function agregarALista(texto) {
   const ul = document.getElementById('listaProductos');
+
   const empty = ul.querySelector('.empty-list');
   if (empty) empty.remove();
 
@@ -91,6 +93,7 @@ function agregarALista(texto) {
   const btn = document.createElement('button');
   btn.textContent = 'X';
   btn.className = 'remove-btn';
+
   btn.onclick = () => {
     li.remove();
     if (ul.children.length === 0) {
@@ -104,14 +107,21 @@ function agregarALista(texto) {
 }
 
 function agregarDesdeSelector() {
-  const val = document.getElementById('productos').value;
+  const select = document.getElementById('productos');
+  const val = select.value;
+
   if (!val) return alert('Selecciona producto');
+
   agregarALista(val);
+
+  // ✅ reset selector
+  select.selectedIndex = 0;
 }
 
 function agregarDesdeManual() {
   const val = document.getElementById('manualInput').value.trim();
   if (!val) return alert('Escribe algo');
+
   agregarALista(val);
   document.getElementById('manualInput').value = '';
 }
@@ -121,8 +131,9 @@ async function hacerPedido() {
   const ubicacion = document.getElementById('ubicacion').value;
   if (!ubicacion) return alert('Selecciona ubicación');
 
-  const items = Array.from(document.querySelectorAll('#listaProductos li span'))
-    .map(x => x.textContent);
+  const items = Array.from(
+    document.querySelectorAll('#listaProductos li span')
+  ).map(x => x.textContent);
 
   if (items.length === 0) return alert('Lista vacía');
 
@@ -137,6 +148,7 @@ async function hacerPedido() {
 
   try {
 
+    // 🔹 LEER BIN
     const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
       headers: { 'X-Master-Key': config.apiKey }
     });
@@ -145,13 +157,18 @@ async function hacerPedido() {
 
     const data = await res.json();
 
+    // ✅ SOLUCIÓN CLAVE: inicializar correctamente
     let pedidos = [];
+
     if (data.record && Array.isArray(data.record.pedidos)) {
       pedidos = data.record.pedidos;
+    } else {
+      pedidos = [];
     }
 
     pedidos.push(pedido);
 
+    // 🔹 GUARDAR
     const save = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
       method: 'PUT',
       headers: {
@@ -166,13 +183,13 @@ async function hacerPedido() {
     document.getElementById('listaProductos').innerHTML =
       '<li class="empty-list">No hay productos</li>';
 
-    alert('✅ Pedido enviado');
+    alert('✅ Pedido enviado correctamente');
 
   } catch (e) {
 
     console.error(e);
 
-    let msg = 'Error';
+    let msg = 'Error desconocido';
 
     if (e.message.includes('404')) msg = 'BIN no existe';
     if (e.message.includes('401')) msg = 'API KEY incorrecta';
@@ -187,14 +204,14 @@ async function hacerPedido() {
 
 document.getElementById('buscador').addEventListener('input', function () {
   const f = this.value.toLowerCase();
-  actualizarSelect(productosOriginales.filter(p =>
-    `${p.nombre} (${p.codigo})`.toLowerCase().includes(f)
-  ));
+
+  actualizarSelect(
+    productosOriginales.filter(p =>
+      `${p.nombre} (${p.codigo})`.toLowerCase().includes(f)
+    )
+  );
 });
 
 cargarProductos();
 
 </script>
-
-</body>
-</html>
