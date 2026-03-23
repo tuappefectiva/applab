@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin — Pedidos</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
 
 <style>
 body {
   font-family: Arial;
-  background:#f4f4f4;
+  background:#f4f6f9;
   padding:20px;
 }
-h1 { color:#004832; }
 
-.config {
-  background:#fff3cd;
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px;
+h1 {
+  color:#004832;
 }
 
-input {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
+.topbar {
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
 }
 
 button {
@@ -32,130 +29,166 @@ button {
   border:none;
   padding:10px 20px;
   border-radius:999px;
-  margin-top:10px;
   cursor:pointer;
+}
+
+select {
+  padding:10px;
+  border-radius:8px;
+}
+
+.stats {
+  margin-bottom:15px;
+  font-weight:bold;
 }
 
 .pedido {
   background:white;
   padding:15px;
+  border-radius:10px;
   margin-bottom:10px;
-  border-left:5px solid #004832;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.ubicacion {
+  background:#b9e6b9;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+}
+
+.fecha {
+  font-size:12px;
+  color:#666;
+}
+
+.empty {
+  text-align:center;
+  color:#999;
+  padding:20px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Pedidos realizados</h1>
+<h1>📦 Panel de Pedidos</h1>
 
-<div class="config">
-  <h3>Configuración</h3>
-  <input id="binId" placeholder="BIN ID">
-  <input id="apiKey" placeholder="API KEY">
-  <button onclick="guardar()">Guardar</button>
+<div class="topbar">
+  <button onclick="cargar()">🔄 Actualizar</button>
+  <button onclick="limpiar()">🗑️ Limpiar todo</button>
+
+  <select id="filtro">
+    <option value="">Todas las ubicaciones</option>
+    <option value="Almería">Almería</option>
+    <option value="Águilas">Águilas</option>
+  </select>
 </div>
 
-<button onclick="cargar()">Actualizar</button>
-<button onclick="limpiar()">Limpiar todo</button>
+<div class="stats" id="stats"></div>
 
 <div id="zona"></div>
 
 <script>
-let config = null;
+const config = {
+  binId: '69c109d4c3097a1dd54f2a17',
+  apiKey: '$2a$10$pQZ95V9v7uzCApZinQK1duBWYbs0K5CA01FfBphmSnlHapcrOU6x.'
+};
 
-function guardar() {
-  const binId = document.getElementById('binId').value.trim();
-  const apiKey = document.getElementById('apiKey').value.trim();
-
-  if (!binId || !apiKey) {
-    alert("Completa los datos");
-    return;
-  }
-
-  config = { binId, apiKey };
-
-  // ✅ CORREGIDO
-  localStorage.setItem("jsonbin_config", JSON.stringify(config));
-
-  alert("Guardado correctamente");
-
-  cargar();
-}
-
-function cargarConfig() {
-  const data = localStorage.getItem("jsonbin_config");
-  if (data) {
-    config = JSON.parse(data);
-    document.getElementById('binId').value = config.binId;
-    document.getElementById('apiKey').value = config.apiKey;
-  }
-}
+let pedidosGlobal = [];
 
 async function cargar() {
-  if (!config) {
-    alert("Configura primero");
-    return;
-  }
 
   const zona = document.getElementById('zona');
   zona.innerHTML = "Cargando...";
 
   try {
+
     const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-      headers: {
-        "X-Master-Key": config.apiKey
-      }
+      headers: { 'X-Master-Key': config.apiKey }
     });
 
     if (!res.ok) throw new Error(res.status);
 
     const data = await res.json();
-    const pedidos = data.record?.pedidos || [];
 
-    zona.innerHTML = "";
+    pedidosGlobal = data.record?.pedidos || [];
 
-    if (pedidos.length === 0) {
-      zona.innerHTML = "Sin pedidos";
-      return;
-    }
+    // 🔥 ordenar por fecha DESC
+    pedidosGlobal.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
-    pedidos.forEach((p, i) => {
-      const div = document.createElement("div");
-      div.className = "pedido";
-
-      div.innerHTML = `
-        <b>Pedido ${i+1}</b><br>
-        ${p.ubicacion} <br>
-        ${p.productos.join("<br>")}
-        <br><br>
-        <button onclick="eliminar(${i})">Eliminar</button>
-      `;
-
-      zona.appendChild(div);
-    });
+    render();
 
   } catch (e) {
     console.error(e);
-    zona.innerHTML = "❌ Error (revisa BIN y API KEY)";
+    zona.innerHTML = "❌ Error cargando pedidos";
   }
 }
 
-async function eliminar(index) {
-  const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
-    headers: { "X-Master-Key": config.apiKey }
+function render() {
+
+  const filtro = document.getElementById('filtro').value;
+  const zona = document.getElementById('zona');
+
+  let pedidos = pedidosGlobal;
+
+  if (filtro) {
+    pedidos = pedidos.filter(p => p.ubicacion === filtro);
+  }
+
+  document.getElementById('stats').innerText =
+    `Total pedidos: ${pedidos.length}`;
+
+  zona.innerHTML = "";
+
+  if (pedidos.length === 0) {
+    zona.innerHTML = '<div class="empty">No hay pedidos</div>';
+    return;
+  }
+
+  pedidos.forEach((p, i) => {
+
+    const div = document.createElement('div');
+    div.className = 'pedido';
+
+    div.innerHTML = `
+      <div class="header">
+        <b>Pedido</b>
+        <span class="ubicacion">${p.ubicacion}</span>
+      </div>
+
+      <div class="fecha">
+        ${new Date(p.fecha).toLocaleString()}
+      </div>
+
+      <hr>
+
+      ${p.productos.map(x => `• ${x}`).join("<br>")}
+
+      <br><br>
+      <button onclick="eliminar(${i})">Eliminar</button>
+    `;
+
+    zona.appendChild(div);
   });
+}
 
-  const data = await res.json();
-  const pedidos = data.record.pedidos || [];
+async function eliminar(index) {
 
+  const pedidos = [...pedidosGlobal];
   pedidos.splice(index, 1);
 
   await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": config.apiKey
+    method:'PUT',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Master-Key': config.apiKey
     },
     body: JSON.stringify({ pedidos })
   });
@@ -164,11 +197,14 @@ async function eliminar(index) {
 }
 
 async function limpiar() {
+
+  if (!confirm("¿Eliminar todo?")) return;
+
   await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Master-Key": config.apiKey
+    method:'PUT',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Master-Key': config.apiKey
     },
     body: JSON.stringify({ pedidos: [] })
   });
@@ -176,8 +212,9 @@ async function limpiar() {
   cargar();
 }
 
-cargarConfig();
-if (config) cargar();
+document.getElementById('filtro').addEventListener('change', render);
+
+cargar();
 </script>
 
 </body>
