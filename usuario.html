@@ -136,8 +136,8 @@
   <script>
     // Configuración fija (reemplaza con tus credenciales reales)
     const config = {
-      binId: '69bd1a9756e12a1d72419d0b',
-      apiKey: '$2a$10$qKtIaX7f5Y8vSpx0YtCXvem8Yjfblnv225H1aHDanuNinPNJiUsjC'
+      binId: '68e5061a42be1c4f08a35b3c',
+      apiKey: '$2a$10$pQZ95V9v7uzCApZinQK1duBWYbs0K5CA01FfBphmSnlHapcrOU6x.'
     };
 
     let productosOriginales = [];
@@ -260,7 +260,7 @@
         // Obtener pedidos existentes
         const response = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
           headers: {
-            'X-Access-Key': config.apiKey
+           'X-Master-Key': config.apiKey
           }
         });
 
@@ -278,7 +278,7 @@
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Access-Key': config.apiKey
+            'X-Master-Key': config.apiKey
           },
           body: JSON.stringify({ pedidos })
         });
