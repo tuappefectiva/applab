@@ -268,7 +268,7 @@
       }
       
       config = { binId, apiKey };
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+      localStorage.removeItem('jsonbin_config');
       document.getElementById('configPanel').style.display = 'none';
       alert('✅ Configuración guardada correctamente');
       cargarPedidos();
