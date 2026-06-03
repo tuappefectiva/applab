@@ -4,50 +4,112 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Usuario — Laboratorio</title>
-
+<link rel="stylesheet" href="style.css">
 <style>
-body { font-family: Arial; background:#b9e6b9; padding:20px; }
-.card { background:#fff; border-radius:10px; padding:15px; margin-bottom:20px; }
-button { background:#004832; color:#fff; border:none; border-radius:999px; padding:10px 20px; cursor:pointer; }
-.remove-btn { background:#e74c3c; margin-left:10px; }
-.empty-list { color:#999; text-align:center; }
-.loading { display:none; font-weight:bold; }
+body { font-family: Arial; background: #b9e6b9; padding: 20px; }
+.card { background: #fff; border-radius: 10px; padding: 15px; margin-bottom: 16px; }
+.card h2 { font-size: 14px; font-weight: 600; color: #004832; margin-bottom: 10px; }
+button { background: #004832; color: #fff; border: none; border-radius: 999px; padding: 10px 20px; cursor: pointer; font-size: 14px; }
+button:hover { background: #006644; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.remove-btn { background: #e74c3c; padding: 4px 10px; font-size: 12px; margin-left: 8px; }
+.remove-btn:hover { background: #c0392b; }
+.empty-list { color: #999; text-align: center; padding: 10px 0; list-style: none; }
+.loading { display: none; font-weight: bold; color: #004832; margin-top: 8px; }
+
+/* Search + selector row */
+.search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.search-row input { flex: 1; min-width: 120px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+.search-row select { flex: 2; min-width: 180px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+.no-results { font-size: 13px; color: #999; padding: 4px 0; display: none; }
+
+/* Product list items */
+#listaProductos { list-style: none; padding: 0; margin: 0 0 12px; }
+#listaProductos li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
+#listaProductos li:last-child { border-bottom: none; }
+.item-name { flex: 1; font-size: 14px; min-width: 140px; }
+.qty-label { font-size: 13px; color: #555; white-space: nowrap; }
+.qty-input { width: 60px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; text-align: center; }
+
+/* Favoritos */
+.fav-section { margin-bottom: 10px; }
+.fav-title { font-size: 12px; color: #888; margin-bottom: 6px; }
+.fav-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fav-chip { background: #e8f5e9; color: #004832; border: 1px solid #a5d6a7; border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+.fav-chip:hover { background: #c8e6c9; }
+
+/* Manual */
+.manual-row { display: flex; gap: 8px; align-items: flex-start; }
+.manual-row textarea { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 38px; }
+
+/* Observaciones */
+.obs-input { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 48px; box-sizing: border-box; }
+
+/* Duplicado warning */
+.dup-msg { font-size: 12px; color: #e74c3c; display: none; margin-top: 4px; }
 </style>
 </head>
-
 <body>
 
-<h1>Usuario — Laboratorio</h1>
+<h1 style="color:#004832; margin-bottom:16px;">🧪 Solicitud de productos</h1>
 
+<!-- Ubicación -->
 <div class="card">
-<select id="ubicacion">
-<option value="" disabled selected>Selecciona ubicación</option>
-<option>Almería</option>
-<option>Águilas</option>
-</select>
+  <h2>📍 Ubicación</h2>
+  <select id="ubicacion" style="width:100%; padding:8px 12px; border:1px solid #ccc; border-radius:8px; font-size:14px;">
+    <option value="" disabled selected>Selecciona ubicación</option>
+    <option>Almería</option>
+    <option>Águilas</option>
+  </select>
 </div>
 
-<div class="card">
-<input id="buscador" placeholder="Buscar..." />
-<select id="productos"></select>
-<button onclick="agregarDesdeSelector()">Añadir</button>
+<!-- Favoritos -->
+<div class="card" id="favCard" style="display:none;">
+  <h2>⭐ Frecuentes</h2>
+  <div class="fav-section">
+    <div class="fav-title">Tus productos más añadidos — haz clic para añadir directamente</div>
+    <div class="fav-chips" id="favChips"></div>
+  </div>
 </div>
 
+<!-- Buscador + selector -->
 <div class="card">
-<textarea id="manualInput" placeholder="Manual"></textarea>
-<button onclick="agregarDesdeManual()">Añadir manual</button>
+  <h2>🔍 Buscar y añadir producto</h2>
+  <div class="search-row">
+    <input id="buscador" placeholder="Buscar por nombre o código…" autocomplete="off" />
+    <select id="productos"></select>
+    <button onclick="agregarDesdeSelector()">Añadir</button>
+  </div>
+  <div class="no-results" id="noResults">⚠️ No se encontraron productos. Usa el campo manual.</div>
+  <div class="dup-msg" id="dupMsg">⚠️ Ese producto ya está en la lista.</div>
 </div>
 
+<!-- Manual -->
 <div class="card">
-<ul id="listaProductos">
-<li class="empty-list">No hay productos</li>
-</ul>
-<button id="btnPedido" onclick="hacerPedido()">Enviar pedido</button>
-<div class="loading" id="loading">Enviando...</div>
+  <h2>✏️ Añadir producto manualmente</h2>
+  <div class="manual-row">
+    <textarea id="manualInput" placeholder="Escribe el nombre del producto que no encuentres en la lista…"></textarea>
+    <button onclick="agregarDesdeManual()">Añadir</button>
+  </div>
+</div>
+
+<!-- Lista del pedido -->
+<div class="card">
+  <h2>🛒 Mi pedido</h2>
+  <ul id="listaProductos">
+    <li class="empty-list">No hay productos añadidos</li>
+  </ul>
+
+  <div style="margin-bottom:12px;">
+    <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">💬 Observaciones (opcional)</label>
+    <textarea class="obs-input" id="observaciones" placeholder="Escribe aquí cualquier comentario o indicación adicional para este pedido…"></textarea>
+  </div>
+
+  <button id="btnPedido" onclick="hacerPedido()">Enviar pedido</button>
+  <div class="loading" id="loading">⏳ Enviando pedido…</div>
 </div>
 
 <script>
-
 const config = {
   binId: '69c109d4c3097a1dd54f2a17',
   apiKey: '$2a$10$pQZ95V9v7uzCApZinQK1duBWYbs0K5CA01FfBphmSnlHapcrOU6x.'
@@ -55,91 +117,166 @@ const config = {
 
 let productosOriginales = [];
 
+/* ── CARGA PRODUCTOS ── */
 async function cargarProductos() {
   try {
     const res = await fetch('productos_usuario_limpio.json');
     const data = await res.json();
     productosOriginales = data;
     actualizarSelect(data);
+    renderFavoritos();
   } catch {
-    document.getElementById('productos').innerHTML = '<option>Error</option>';
+    document.getElementById('productos').innerHTML = '<option>Error cargando productos</option>';
   }
 }
 
 function actualizarSelect(productos) {
   const select = document.getElementById('productos');
-  select.innerHTML = '<option disabled selected>Selecciona</option>';
+  const noResults = document.getElementById('noResults');
 
-  productos.forEach(p => {
-    const text = `${p.nombre} (${p.codigo})`;
-    const opt = document.createElement('option');
-    opt.value = text;
-    opt.textContent = text;
-    select.appendChild(opt);
+  if (productos.length === 0) {
+    select.innerHTML = '<option disabled selected>Sin resultados</option>';
+    noResults.style.display = 'block';
+  } else {
+    noResults.style.display = 'none';
+    select.innerHTML = '<option disabled selected>Selecciona un producto…</option>';
+    productos.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = `${p.nombre} (${p.codigo})`;
+      opt.textContent = `${p.nombre} (${p.codigo})`;
+      select.appendChild(opt);
+    });
+  }
+}
+
+/* ── FAVORITOS ── */
+function getFavs() {
+  try { return JSON.parse(localStorage.getItem('applab_favs') || '{}'); } catch { return {}; }
+}
+
+function incrementarFav(nombre) {
+  const favs = getFavs();
+  favs[nombre] = (favs[nombre] || 0) + 1;
+  localStorage.setItem('applab_favs', JSON.stringify(favs));
+}
+
+function renderFavoritos() {
+  const favs = getFavs();
+  const ordenados = Object.entries(favs)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  const card = document.getElementById('favCard');
+  const chips = document.getElementById('favChips');
+
+  if (ordenados.length === 0) { card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+  chips.innerHTML = '';
+  ordenados.forEach(([nombre]) => {
+    const chip = document.createElement('button');
+    chip.className = 'fav-chip';
+    chip.textContent = nombre.length > 40 ? nombre.slice(0, 40) + '…' : nombre;
+    chip.title = nombre;
+    chip.onclick = () => { agregarALista(nombre); hideDupMsg(); };
+    chips.appendChild(chip);
   });
 }
 
-function agregarALista(texto) {
-  const ul = document.getElementById('listaProductos');
+/* ── LISTA ── */
+function yaEstaEnLista(texto) {
+  return Array.from(document.querySelectorAll('#listaProductos li .item-name'))
+    .some(s => s.textContent === texto);
+}
 
+function hideDupMsg() { document.getElementById('dupMsg').style.display = 'none'; }
+
+function agregarALista(texto) {
+  if (yaEstaEnLista(texto)) {
+    document.getElementById('dupMsg').style.display = 'block';
+    return false;
+  }
+  hideDupMsg();
+
+  const ul = document.getElementById('listaProductos');
   const empty = ul.querySelector('.empty-list');
   if (empty) empty.remove();
 
   const li = document.createElement('li');
 
-  const span = document.createElement('span');
-  span.textContent = texto;
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'item-name';
+  nameSpan.textContent = texto;
+
+  const qtyLabel = document.createElement('span');
+  qtyLabel.className = 'qty-label';
+  qtyLabel.textContent = 'Uds:';
+
+  const qtyInput = document.createElement('input');
+  qtyInput.type = 'number';
+  qtyInput.min = '1';
+  qtyInput.value = '1';
+  qtyInput.className = 'qty-input';
+  qtyInput.setAttribute('aria-label', 'Cantidad');
 
   const btn = document.createElement('button');
-  btn.textContent = 'X';
+  btn.textContent = 'Quitar';
   btn.className = 'remove-btn';
-
   btn.onclick = () => {
     li.remove();
     if (ul.children.length === 0) {
-      ul.innerHTML = '<li class="empty-list">No hay productos</li>';
+      ul.innerHTML = '<li class="empty-list">No hay productos añadidos</li>';
     }
   };
 
-  li.appendChild(span);
+  li.appendChild(nameSpan);
+  li.appendChild(qtyLabel);
+  li.appendChild(qtyInput);
   li.appendChild(btn);
   ul.appendChild(li);
+  return true;
 }
 
 function agregarDesdeSelector() {
   const select = document.getElementById('productos');
   const val = select.value;
-
-  if (!val) return alert('Selecciona producto');
-
-  agregarALista(val);
-
-  // ✅ reset selector
-  select.selectedIndex = 0;
+  if (!val || val === 'Sin resultados') return alert('Selecciona un producto válido');
+  const added = agregarALista(val);
+  if (added) {
+    incrementarFav(val);
+    renderFavoritos();
+    select.selectedIndex = 0;
+    document.getElementById('buscador').value = '';
+    actualizarSelect(productosOriginales);
+  }
 }
 
 function agregarDesdeManual() {
   const val = document.getElementById('manualInput').value.trim();
-  if (!val) return alert('Escribe algo');
-
+  if (!val) return alert('Escribe el nombre del producto');
   agregarALista(val);
   document.getElementById('manualInput').value = '';
 }
 
+/* ── ENVÍO ── */
 async function hacerPedido() {
-
   const ubicacion = document.getElementById('ubicacion').value;
-  if (!ubicacion) return alert('Selecciona ubicación');
+  if (!ubicacion) return alert('Selecciona una ubicación antes de enviar');
 
-  const items = Array.from(
-    document.querySelectorAll('#listaProductos li span')
-  ).map(x => x.textContent);
+  const items = Array.from(document.querySelectorAll('#listaProductos li')).map(li => {
+    const nombre = li.querySelector('.item-name')?.textContent;
+    const qty = li.querySelector('.qty-input')?.value || '1';
+    return nombre ? { nombre, cantidad: parseInt(qty, 10) || 1 } : null;
+  }).filter(Boolean);
 
-  if (items.length === 0) return alert('Lista vacía');
+  if (items.length === 0) return alert('Añade al menos un producto al pedido');
+
+  const observaciones = document.getElementById('observaciones').value.trim();
 
   const pedido = {
     productos: items,
     ubicacion,
+    observaciones: observaciones || '',
     fecha: new Date().toISOString()
   };
 
@@ -147,64 +284,45 @@ async function hacerPedido() {
   document.getElementById('btnPedido').disabled = true;
 
   try {
-
-    // 🔹 LEER BIN
     const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
       headers: { 'X-Master-Key': config.apiKey }
     });
-
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const data = await res.json();
 
-    // ✅ SOLUCIÓN CLAVE: inicializar correctamente
     let pedidos = [];
-
     if (data.record && Array.isArray(data.record.pedidos)) {
       pedidos = data.record.pedidos;
-    } else {
-      pedidos = [];
     }
-
     pedidos.push(pedido);
 
-    // 🔹 GUARDAR
     const save = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': config.apiKey
-      },
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': config.apiKey },
       body: JSON.stringify({ pedidos })
     });
-
     if (!save.ok) throw new Error(`SAVE ${save.status}`);
 
-    document.getElementById('listaProductos').innerHTML =
-      '<li class="empty-list">No hay productos</li>';
-
+    document.getElementById('listaProductos').innerHTML = '<li class="empty-list">No hay productos añadidos</li>';
+    document.getElementById('observaciones').value = '';
+    hideDupMsg();
     alert('✅ Pedido enviado correctamente');
 
   } catch (e) {
-
     console.error(e);
-
     let msg = 'Error desconocido';
-
-    if (e.message.includes('404')) msg = 'BIN no existe';
+    if (e.message.includes('404')) msg = 'BIN no encontrado';
     if (e.message.includes('401')) msg = 'API KEY incorrecta';
-
     alert('❌ ' + msg);
-
   } finally {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('btnPedido').disabled = false;
   }
 }
 
+/* ── BUSCADOR ── */
 document.getElementById('buscador').addEventListener('input', function () {
   const f = this.value.toLowerCase();
-
   actualizarSelect(
     productosOriginales.filter(p =>
       `${p.nombre} (${p.codigo})`.toLowerCase().includes(f)
@@ -213,5 +331,6 @@ document.getElementById('buscador').addEventListener('input', function () {
 });
 
 cargarProductos();
-
 </script>
+</body>
+</html>
