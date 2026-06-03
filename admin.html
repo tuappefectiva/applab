@@ -3,97 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
-
+<title>Admin — Panel de Pedidos</title>
 <style>
-body {
-  font-family: Arial;
-  background:#f4f6f9;
-  padding:20px;
-}
+* { box-sizing: border-box; }
+body { font-family: Arial; background: #f4f6f9; padding: 20px; margin: 0; }
+h1 { color: #004832; margin-bottom: 16px; }
+h2 { color: #004832; font-size: 16px; margin-bottom: 12px; }
 
-h1 {
-  color:#004832;
-}
+.topbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+button { background: #004832; color: white; border: none; padding: 10px 20px; border-radius: 999px; cursor: pointer; font-size: 14px; }
+button:hover { background: #006644; }
+button.danger { background: #e74c3c; }
+button.danger:hover { background: #c0392b; }
+button.secondary { background: #888; }
+button.secondary:hover { background: #666; }
+select, input[type="text"] { padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
 
-.topbar {
-  display:flex;
-  gap:10px;
-  margin-bottom:20px;
-  flex-wrap:wrap;
-}
+.stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat-card { background: #fff; border-radius: 10px; padding: 12px 18px; text-align: center; min-width: 120px; border: 1px solid #e0e0e0; }
+.stat-val { font-size: 22px; font-weight: bold; color: #004832; }
+.stat-label { font-size: 12px; color: #888; margin-top: 2px; }
 
-button {
-  background:#004832;
-  color:white;
-  border:none;
-  padding:10px 20px;
-  border-radius:999px;
-  cursor:pointer;
-}
+.pedido { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.pedido-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.ubicacion { background: #b9e6b9; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #004832; }
+.fecha { font-size: 12px; color: #666; }
+.producto-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; }
+.qty-badge { background: #004832; color: white; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: bold; min-width: 28px; text-align: center; }
+.observaciones-box { background: #fffde7; border-left: 3px solid #f9a825; padding: 8px 12px; border-radius: 0 6px 6px 0; margin-top: 8px; font-size: 13px; color: #555; }
+.pedido-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
-select {
-  padding:10px;
-  border-radius:8px;
-}
+/* Estado */
+.estado { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.estado-recibido { background: #e3f2fd; color: #1565c0; }
+.estado-proceso { background: #fff3e0; color: #e65100; }
+.estado-completado { background: #e8f5e9; color: #2e7d32; }
+select.estado-select { padding: 4px 8px; font-size: 12px; border-radius: 999px; border: 1px solid #ccc; }
 
-.stats {
-  margin-bottom:15px;
-  font-weight:bold;
-}
+.empty { text-align: center; color: #999; padding: 30px; }
 
-.pedido {
-  background:white;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-
-.header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.ubicacion {
-  background:#b9e6b9;
-  padding:5px 10px;
-  border-radius:999px;
-  font-size:12px;
-}
-
-.fecha {
-  font-size:12px;
-  color:#666;
-}
-
-.empty {
-  text-align:center;
-  color:#999;
-  padding:20px;
-}
+/* Gestión catálogo */
+.catalogo-section { background: white; border-radius: 10px; padding: 16px; margin-bottom: 20px; border: 1px solid #e0e0e0; display: none; }
+.catalogo-section.open { display: block; }
+.cat-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.cat-row input { flex: 1; min-width: 180px; }
+.prod-list { max-height: 220px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+.prod-list-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+.prod-list-item:last-child { border-bottom: none; }
+.prod-del { background: #e74c3c; color: white; border: none; border-radius: 999px; padding: 2px 10px; font-size: 12px; cursor: pointer; }
+.prod-del:hover { background: #c0392b; }
+.cat-filter { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; margin-bottom: 8px; }
+.tab-bar { display: flex; gap: 6px; margin-bottom: 20px; }
+.tab-btn { padding: 8px 18px; border-radius: 999px; border: 1px solid #ccc; background: white; color: #555; cursor: pointer; font-size: 14px; }
+.tab-btn.active { background: #004832; color: white; border-color: #004832; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 </style>
 </head>
-
 <body>
 
-<h1>📦 Panel de Pedidos</h1>
+<h1>📦 Panel de administración</h1>
 
-<div class="topbar">
-  <button onclick="cargar()">🔄 Actualizar</button>
-  <button onclick="limpiar()">🗑️ Limpiar todo</button>
-
-  <select id="filtro">
-    <option value="">Todas las ubicaciones</option>
-    <option value="Almería">Almería</option>
-    <option value="Águilas">Águilas</option>
-  </select>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('pedidos', this)">📋 Pedidos</button>
+  <button class="tab-btn" onclick="switchTab('catalogo', this)">🗂️ Catálogo</button>
 </div>
 
-<div class="stats" id="stats"></div>
+<!-- ══ TAB PEDIDOS ══ -->
+<div class="tab-content active" id="tab-pedidos">
+  <div class="topbar">
+    <button onclick="cargar()">🔄 Actualizar</button>
+    <button class="danger" onclick="limpiar()">🗑️ Limpiar todos</button>
+    <select id="filtro" onchange="render()">
+      <option value="">Todas las ubicaciones</option>
+      <option value="Almería">Almería</option>
+      <option value="Águilas">Águilas</option>
+    </select>
+  </div>
 
-<div id="zona"></div>
+  <div class="stats" id="stats"></div>
+  <div id="zona"></div>
+</div>
+
+<!-- ══ TAB CATÁLOGO ══ -->
+<div class="tab-content" id="tab-catalogo">
+  <h2>Añadir producto al catálogo</h2>
+  <div class="cat-row">
+    <input type="text" id="newNombre" placeholder="Nombre del producto" />
+    <input type="text" id="newCodigo" placeholder="Código (ej: GNPSENS)" style="max-width:160px;" />
+    <button onclick="addProducto()">Añadir</button>
+  </div>
+  <h2>Productos actuales (<span id="catCount">0</span>)</h2>
+  <input class="cat-filter" id="catFilter" placeholder="Filtrar catálogo…" oninput="renderCatalogo()" />
+  <div class="prod-list" id="prodList"></div>
+  <div style="margin-top:12px; display:flex; gap:10px;">
+    <button onclick="guardarCatalogo()">💾 Guardar cambios</button>
+    <button class="secondary" onclick="exportarCatalogo()">⬇️ Exportar JSON</button>
+  </div>
+  <p id="catMsg" style="font-size:13px; color:#004832; margin-top:8px; display:none;"></p>
+</div>
 
 <script>
 const config = {
@@ -102,120 +110,210 @@ const config = {
 };
 
 let pedidosGlobal = [];
+let catalogoLocal = [];
 
+/* ══ TABS ══ */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'catalogo' && catalogoLocal.length === 0) cargarCatalogo();
+}
+
+/* ══ PEDIDOS ══ */
 async function cargar() {
-
-  const zona = document.getElementById('zona');
-  zona.innerHTML = "Cargando...";
-
+  document.getElementById('zona').innerHTML = '<p>Cargando…</p>';
   try {
-
     const res = await fetch(`https://api.jsonbin.io/v3/b/${config.binId}/latest`, {
       headers: { 'X-Master-Key': config.apiKey }
     });
-
     if (!res.ok) throw new Error(res.status);
-
     const data = await res.json();
-
     pedidosGlobal = data.record?.pedidos || [];
-
-    // 🔥 ordenar por fecha DESC
-    pedidosGlobal.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-
+    pedidosGlobal.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     render();
-
   } catch (e) {
-    console.error(e);
-    zona.innerHTML = "❌ Error cargando pedidos";
+    document.getElementById('zona').innerHTML = '❌ Error cargando pedidos: ' + e.message;
   }
 }
 
-function render() {
+function estadoClass(e) {
+  if (e === 'En proceso') return 'estado-proceso';
+  if (e === 'Completado') return 'estado-completado';
+  return 'estado-recibido';
+}
 
+function render() {
   const filtro = document.getElementById('filtro').value;
   const zona = document.getElementById('zona');
+  const statsEl = document.getElementById('stats');
 
   let pedidos = pedidosGlobal;
+  if (filtro) pedidos = pedidos.filter(p => p.ubicacion === filtro);
 
-  if (filtro) {
-    pedidos = pedidos.filter(p => p.ubicacion === filtro);
-  }
+  // Stats
+  const totalProd = pedidos.reduce((acc, p) => {
+    const items = Array.isArray(p.productos) ? p.productos : [];
+    return acc + items.reduce((s, x) => s + (x.cantidad || 1), 0);
+  }, 0);
+  const completados = pedidos.filter(p => p.estado === 'Completado').length;
 
-  document.getElementById('stats').innerText =
-    `Total pedidos: ${pedidos.length}`;
+  statsEl.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${pedidos.length}</div><div class="stat-label">Pedidos</div></div>
+    <div class="stat-card"><div class="stat-val">${totalProd}</div><div class="stat-label">Unidades totales</div></div>
+    <div class="stat-card"><div class="stat-val">${completados}</div><div class="stat-label">Completados</div></div>
+  `;
 
-  zona.innerHTML = "";
-
+  zona.innerHTML = '';
   if (pedidos.length === 0) {
     zona.innerHTML = '<div class="empty">No hay pedidos</div>';
     return;
   }
 
-  pedidos.forEach((p, i) => {
-
+  // Índice real (para eliminar correctamente aunque haya filtro)
+  pedidos.forEach(pedido => {
+    const realIdx = pedidosGlobal.indexOf(pedido);
     const div = document.createElement('div');
     div.className = 'pedido';
 
+    const estado = pedido.estado || 'Recibido';
+    const fecha = new Date(pedido.fecha).toLocaleString('es-ES');
+
+    // Productos (soporte formato nuevo {nombre, cantidad} y formato viejo string)
+    const productosHTML = (pedido.productos || []).map(p => {
+      if (typeof p === 'string') {
+        return `<div class="producto-item"><span class="qty-badge">1</span>${p}</div>`;
+      }
+      return `<div class="producto-item"><span class="qty-badge">${p.cantidad || 1}</span>${p.nombre}</div>`;
+    }).join('');
+
+    const obsHTML = pedido.observaciones
+      ? `<div class="observaciones-box">💬 ${pedido.observaciones}</div>`
+      : '';
+
     div.innerHTML = `
-      <div class="header">
-        <b>Pedido</b>
-        <span class="ubicacion">${p.ubicacion}</span>
+      <div class="pedido-header">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span class="ubicacion">${pedido.ubicacion}</span>
+          <span class="fecha">📅 ${fecha}</span>
+        </div>
+        <select class="estado-select" onchange="cambiarEstado(${realIdx}, this.value)">
+          <option ${estado==='Recibido'?'selected':''}>Recibido</option>
+          <option ${estado==='En proceso'?'selected':''}>En proceso</option>
+          <option ${estado==='Completado'?'selected':''}>Completado</option>
+        </select>
       </div>
-
-      <div class="fecha">
-        ${new Date(p.fecha).toLocaleString()}
+      <hr style="border:none; border-top:1px solid #f0f0f0; margin:8px 0;">
+      ${productosHTML}
+      ${obsHTML}
+      <div class="pedido-actions">
+        <button class="danger" onclick="eliminar(${realIdx})">🗑️ Eliminar</button>
       </div>
-
-      <hr>
-
-      ${p.productos.map(x => `• ${x}`).join("<br>")}
-
-      <br><br>
-      <button onclick="eliminar(${i})">Eliminar</button>
     `;
-
     zona.appendChild(div);
   });
 }
 
-async function eliminar(index) {
+async function cambiarEstado(realIdx, nuevoEstado) {
+  pedidosGlobal[realIdx].estado = nuevoEstado;
+  await guardarPedidos(pedidosGlobal);
+}
 
+async function eliminar(realIdx) {
+  if (!confirm('¿Eliminar este pedido?')) return;
   const pedidos = [...pedidosGlobal];
-  pedidos.splice(index, 1);
-
-  await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-    method:'PUT',
-    headers:{
-      'Content-Type':'application/json',
-      'X-Master-Key': config.apiKey
-    },
-    body: JSON.stringify({ pedidos })
-  });
-
+  pedidos.splice(realIdx, 1);
+  await guardarPedidos(pedidos);
   cargar();
 }
 
 async function limpiar() {
-
-  if (!confirm("¿Eliminar todo?")) return;
-
-  await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
-    method:'PUT',
-    headers:{
-      'Content-Type':'application/json',
-      'X-Master-Key': config.apiKey
-    },
-    body: JSON.stringify({ pedidos: [] })
-  });
-
+  if (!confirm('¿Eliminar TODOS los pedidos? Esta acción no se puede deshacer.')) return;
+  await guardarPedidos([]);
   cargar();
 }
 
-document.getElementById('filtro').addEventListener('change', render);
+async function guardarPedidos(pedidos) {
+  await fetch(`https://api.jsonbin.io/v3/b/${config.binId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': config.apiKey },
+    body: JSON.stringify({ pedidos })
+  });
+}
+
+/* ══ CATÁLOGO ══ */
+async function cargarCatalogo() {
+  try {
+    const res = await fetch('productos_usuario_limpio.json');
+    catalogoLocal = await res.json();
+    renderCatalogo();
+  } catch {
+    alert('Error cargando el catálogo local');
+  }
+}
+
+function renderCatalogo() {
+  const f = document.getElementById('catFilter').value.toLowerCase();
+  const list = document.getElementById('prodList');
+  document.getElementById('catCount').textContent = catalogoLocal.length;
+
+  const filtrados = catalogoLocal.filter(p =>
+    (p.nombre + p.codigo).toLowerCase().includes(f)
+  );
+
+  list.innerHTML = filtrados.length === 0
+    ? '<div class="prod-list-item" style="color:#999;">Sin resultados</div>'
+    : filtrados.map((p, i) => {
+        const realIdx = catalogoLocal.indexOf(p);
+        return `<div class="prod-list-item">
+          <span><b style="font-size:11px;color:#888;">${p.codigo}</b> — ${p.nombre}</span>
+          <button class="prod-del" onclick="deleteProducto(${realIdx})">Quitar</button>
+        </div>`;
+      }).join('');
+}
+
+function addProducto() {
+  const nombre = document.getElementById('newNombre').value.trim();
+  const codigo = document.getElementById('newCodigo').value.trim();
+  if (!nombre || !codigo) return alert('Rellena nombre y código');
+  if (catalogoLocal.some(p => p.codigo === codigo)) return alert('Ya existe un producto con ese código');
+  catalogoLocal.push({ nombre, codigo });
+  document.getElementById('newNombre').value = '';
+  document.getElementById('newCodigo').value = '';
+  renderCatalogo();
+  showCatMsg('Producto añadido. Recuerda guardar los cambios.');
+}
+
+function deleteProducto(idx) {
+  if (!confirm(`¿Quitar "${catalogoLocal[idx].nombre}" del catálogo?`)) return;
+  catalogoLocal.splice(idx, 1);
+  renderCatalogo();
+  showCatMsg('Producto eliminado. Recuerda guardar los cambios.');
+}
+
+async function guardarCatalogo() {
+  // Descarga el JSON actualizado para que puedas sustituir el fichero en el servidor
+  exportarCatalogo();
+  showCatMsg('✅ JSON descargado. Sustituye el fichero productos_usuario_limpio.json en el servidor con este archivo.');
+}
+
+function exportarCatalogo() {
+  const blob = new Blob([JSON.stringify(catalogoLocal, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'productos_usuario_limpio.json';
+  a.click();
+}
+
+function showCatMsg(msg) {
+  const el = document.getElementById('catMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
 
 cargar();
 </script>
-
 </body>
 </html>
